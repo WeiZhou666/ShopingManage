@@ -402,10 +402,22 @@ export default {
       }
     }
 
+    const u = users[id]
+    if (!u) return { code: 200, msg: 'success', data: null }
+    // 将内部 camelCase 字段转换为 snake_case，tags 数组转数字，与数据库 schema 对齐
+    const { registerTime, lastLoginTime, totalConsumption, orderCount, avgOrderAmount, ...rest } = u
+    const tagMap: Record<string, number> = { '优质客户': 1, '普通客户': 2, '恶意用户': 3 }
     return {
       code: 200,
       msg: 'success',
-      data: users[id] || null
+      data: {
+        ...rest,
+        register_time: registerTime,
+        last_login_time: lastLoginTime,
+        total_consumption: totalConsumption,
+        order_count: orderCount,
+        tags: tagMap[u.tags[0]] || 2
+      }
     }
   },
 
@@ -433,7 +445,7 @@ export default {
 
   // 删除用户
   deleteUser: (id: string) => {
-    
+
     return {
       code: 200,
       msg: '删除成功',
@@ -452,7 +464,7 @@ export default {
 
   // 修改用户状态
   updateUserStatus: (id: string, status: number) => {
-    
+
     return {
       code: 200,
       msg: status === 1 ? '已启用' : '已禁用',

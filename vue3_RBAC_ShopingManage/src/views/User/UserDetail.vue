@@ -49,8 +49,8 @@
           <el-descriptions-item label="用户ID">{{ userData.id }}</el-descriptions-item>
           <el-descriptions-item label="用户昵称">{{ userData.nickname }}</el-descriptions-item>
           <el-descriptions-item label="手机号">{{ userData.phone }}</el-descriptions-item>
-          <el-descriptions-item label="注册时间">{{ userData.registerTime }}</el-descriptions-item>
-          <el-descriptions-item label="最后登录">{{ userData.lastLoginTime }}</el-descriptions-item>
+          <el-descriptions-item label="注册时间">{{ userData.register_time }}</el-descriptions-item>
+          <el-descriptions-item label="最后登录">{{ userData.last_login_time }}</el-descriptions-item>
           <el-descriptions-item label="账号状态">
             <el-tag :type="userData.status === 1 ? 'success' : 'danger'">
               {{ userData.status === 1 ? '正常' : '已禁用' }}
@@ -58,8 +58,8 @@
           </el-descriptions-item>
           <el-descriptions-item label="用户标签" :span="2">
             <div class="tags-wrapper">
-              <el-tag v-for="tag in userData.tags" :key="tag" :type="getTagType(tag)" effect="dark">
-                {{ tag }}
+              <el-tag :type="getTagType(userData.tags)" effect="dark">
+                {{ getTagName(userData.tags) }}
               </el-tag>
               <el-button size="small" text @click="editTags">修改标签</el-button>
             </div>
@@ -77,15 +77,15 @@
             <div class="stats-grid">
               <div class="stat-item">
                 <p class="stat-label">累计消费金额</p>
-                <p class="stat-value">¥{{ userData.totalConsumption.toFixed(2) }}</p>
+                <p class="stat-value">¥{{ Number(userData.total_consumption).toFixed(2) }}</p>
               </div>
               <div class="stat-item">
                 <p class="stat-label">订单总数</p>
-                <p class="stat-value">{{ userData.orderCount }} 单</p>
+                <p class="stat-value">{{ userData.order_count }} 单</p>
               </div>
               <div class="stat-item">
                 <p class="stat-label">平均客单价</p>
-                <p class="stat-value">¥{{ userData.avgOrderAmount.toFixed(2) }}</p>
+                <p class="stat-value">¥{{ avgOrderAmount }}</p>
               </div>
             </div>
           </el-card>
@@ -186,11 +186,11 @@
     <el-dialog v-model="tagDialogVisible" title="修改用户标签" width="400px">
       <el-form :model="tagForm" label-width="80px">
         <el-form-item label="用户标签">
-          <el-checkbox-group v-model="tagForm.selectedTags">
-            <el-checkbox label="优质客户" />
-            <el-checkbox label="普通客户" />
-            <el-checkbox label="恶意用户" />
-          </el-checkbox-group>
+          <el-radio-group v-model="tagForm.tags">
+            <el-radio :value="1">优质客户</el-radio>
+            <el-radio :value="2">普通客户</el-radio>
+            <el-radio :value="3">恶意用户</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -204,7 +204,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -222,26 +222,36 @@ const userData = reactive({
   id: '',
   nickname: '',
   phone: '',
-  registerTime: '',
-  lastLoginTime: '',
-  totalConsumption: 0,
-  orderCount: 0,
-  avgOrderAmount: 0,
+  register_time: '',
+  last_login_time: '',
+  total_consumption: 0,
+  order_count: 0,
   status: 1,
-  tags: [],
+  tags: 2,
   addresses: [],
   recentOrders: [],
   operationLogs: []
 })
 
+// 平均客单价 = 累计消费 / 订单数
+const avgOrderAmount = computed(() => {
+  const total = Number(userData.total_consumption) || 0
+  const count = Number(userData.order_count) || 0
+  return count > 0 ? (total / count).toFixed(2) : '0.00'
+})
+
 // 标签相关
 const tagDialogVisible = ref(false)
-const tagForm = reactive({ selectedTags: [] })
+const tagForm = reactive({ tags: 2 })
 
-const getTagType = (tag) => {
-  const types = { '优质客户': 'success', '普通客户': 'info', '恶意用户': 'danger' }
-  return types[tag] || 'info'
+// 用户标签映射 (tags 字段为互斥单选: 1=优质客户 2=普通客户 3=恶意用户)
+const tagMap = {
+  1: { name: '优质客户', type: 'success' },
+  2: { name: '普通客户', type: 'info' },
+  3: { name: '恶意用户', type: 'danger' }
 }
+const getTagName = (tags) => tagMap[tags]?.name || '未知'
+const getTagType = (tags) => tagMap[tags]?.type || 'info'
 
 const getOrderStatusType = (status) => {
   const map = { '待付款': 'warning', '待发货': 'primary', '已发货': 'info', '已完成': 'success', '已退款': 'info' }
@@ -257,7 +267,7 @@ const loadUserDetail = async (id) => {
       Object.assign(userData, res.data)
       hasUserData.value = true
     } else {
-      Object.assign(userData, { id: '', nickname: '', tags: [], addresses: [], recentOrders: [], operationLogs: [] })
+      Object.assign(userData, { id: '', nickname: '', tags: 2, addresses: [], recentOrders: [], operationLogs: [] })
       hasUserData.value = false
     }
   } catch {
@@ -290,14 +300,19 @@ const toggleUserStatus = () => {
 }
 
 const editTags = () => {
-  tagForm.selectedTags = [...userData.tags]
+  tagForm.tags = userData.tags
   tagDialogVisible.value = true
 }
 
-const saveTags = () => {
-  userData.tags = [...tagForm.selectedTags]
-  tagDialogVisible.value = false
-  ElMessage.success('标签修改成功')
+const saveTags = async () => {
+  try {
+    await api.updateUserTags(userData.id, tagForm.tags)
+    userData.tags = tagForm.tags
+    tagDialogVisible.value = false
+    ElMessage.success('标签修改成功')
+  } catch {
+    ElMessage.error('标签修改失败')
+  }
 }
 
 const setDefault = (row) => {

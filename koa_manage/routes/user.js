@@ -1,5 +1,13 @@
 import Router from 'koa-router'
-import { getUserList, create } from '../controller/user.js'
+import {
+  getUserList,
+  addUser,
+  deleteUser,
+  batchDeleteUsers,
+  updateUserStatus,
+  updateUserTags
+
+} from '../controller/user.js'
 
 const router = new Router()
 
@@ -8,7 +16,16 @@ const router = new Router()
 router.prefix('/user')
 
 router.get('/getUserList', getUserList)
-router.post('/create', create)
+router.post('/addUser', addUser)
+router.delete('/deleteUser', deleteUser)
+router.post('/batchDeleteUsers', batchDeleteUsers)
+router.put('/updateUserStatus', updateUserStatus)
+router.put('/updateUserTags', updateUserTags)
+
+
+
+
+
 
 
 export default router

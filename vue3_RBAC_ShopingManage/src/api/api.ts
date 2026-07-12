@@ -46,7 +46,7 @@ export const getUserList = (data = {}) => {
     url: '/api/user/getUserList',
     method: 'get',
     data,
-   
+
   })
 }
 
@@ -98,7 +98,7 @@ export const updateUserStatus = (id: string | number, status: number) => {
   })
 }
 
-export const updateUserTags = (id: string | number, tags: string[]) => {
+export const updateUserTags = (id: string | number, tags: number) => {
   return request({
     url: '/api/user/updateUserTags',
     method: 'put',

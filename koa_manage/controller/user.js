@@ -40,10 +40,10 @@ const getUserList = async (ctx, next) => {
     // endDate 拼到当天 23:59:59，保证包含结束日全天
     if (startDate || endDate) {
       if (startDate) conditionArr.push(
-        { registerTime: { [Op.gte]: startDate } }
+        { register_time: { [Op.gte]: startDate } }
       )
       if (endDate) conditionArr.push(
-        { registerTime: { [Op.lte]: `${endDate} 23:59:59` } }
+        { register_time: { [Op.lte]: `${endDate} 23:59:59` } }
       )
     }
 
@@ -81,26 +81,153 @@ const getUserList = async (ctx, next) => {
   }
 }
 
-const create = async (ctx, next) => {
-  const params = ctx.request.body
+// 新增用户
+// 前端传 { nickname, phone, tags, status, total_consumption, order_count }
+// password 后端生成默认值 123456 的 bcrypt 哈希
+const addUser = async (ctx) => {
   try {
-    await user.create(params)
+    const { nickname, phone, tags, status, total_consumption, order_count } = ctx.request.body
+
+    // 手机号唯一校验
+    const phoneExist = await user.findOne({ where: { phone } })
+    if (phoneExist) {
+      ctx.body = { code: 400, msg: '手机号已存在', data: null }
+      return
+    }
+
+    // 默认密码 123456，bcrypt 加密
+    const bcrypt = await import('bcryptjs')
+    const password = bcrypt.hashSync('123456', 10)
+
+    const data = await user.create({
+      nickname: nickname || '',
+      phone: phone || '',
+      tags: tags || 2,
+      status: status || 1,
+      total_consumption: total_consumption || 0,
+      order_count: order_count || 0,
+      password
+    })
     ctx.body = {
       code: 200,
-      msg: '创建成功',
-      data: params
+      msg: '新增成功，默认密码: 123456',
+      data: { id: data.id }
     }
-  } catch (error) {
-    logger.error('数据库创建错误:', error)
+  } catch (err) {
+    logger.error('新增用户失败:', err)
     ctx.body = {
       code: 500,
-      msg: '创建失败: ' + error.message,
+      msg: '新增失败: ' + err.message,
       data: null
     }
   }
 }
 
+//删除用户
+const deleteUser = async (ctx) => {
+  try {
+    const { id } = ctx.query
+    if (!id) {
+      ctx.body = { code: 400, msg: 'id不能为空', data: null }
+      return
+    }
+    await user.destroy({ where: { id } })
+    ctx.body = {
+      code: 200,
+      msg: '删除成功',
+      data: { id }
+    }
+  } catch (err) {
+    logger.error('删除用户失败:', err)
+    ctx.body = {
+      code: 500,
+      msg: '删除失败: ' + err.message,
+      data: null
+    }
+  }
+}
+
+//批量删除用户
+const batchDeleteUsers = async (ctx) => {
+  try {
+    const { ids } = ctx.request.body
+    if (!ids || ids.length === 0) {
+      ctx.body = { code: 400, msg: 'ids不能为空', data: null }
+      return
+    }
+    await user.destroy({ where: { id: { [Op.in]: ids } } })
+    ctx.body = {
+      code: 200,
+      msg: '删除成功',
+      data: {
+        ids: ids.map(id => ({ id }))
+      }
+    }
+  } catch (err) {
+    logger.error('批量删除用户失败:', err)
+    ctx.body = {
+      code: 500,
+      msg: '批量删除失败: ' + err.message,
+      data: null
+    }
+  }
+}
+//更新用户状态
+const updateUserStatus = async (ctx) => {
+  try {
+    const { id, status } = ctx.request.body
+    if (id === undefined || id === null || status === undefined || status === null) {
+      ctx.body = { code: 400, msg: 'id或status不能为空', data: null }
+      return
+    }
+    await user.update({ status }, { where: { id: { [Op.eq]: id } } })
+    ctx.body = {
+      code: 200,
+      msg: '更新成功',
+      data: { id, status }
+    }
+  } catch (err) {
+    logger.error('更新用户状态失败:', err)
+    ctx.body = {
+      code: 500,
+      msg: '更新失败: ' + err.message,
+      data: null
+    }
+  }
+}
+//更新用户标签
+const updateUserTags = async (ctx) => {
+  try {
+    const { id, tags } = ctx.request.body
+    if (!id || !tags) {
+      ctx.body = { code: 400, msg: 'id或tags不能为空', data: null }
+      return
+    }
+    await user.update({ tags }, { where: { id: { [Op.eq]: id } } })
+    ctx.body = {
+      code: 200,
+      msg: '更新成功',
+      data: { id, tags }
+    }
+  } catch (err) {
+    logger.error('更新用户标签失败:', err)
+    ctx.body = {
+      code: 500,
+      msg: '更新失败: ' + err.message,
+      data: null
+    }
+  }
+}
+
+
 export {
   getUserList,
-  create
+  addUser,
+  // getUserDetail,
+  // updateUser,
+  deleteUser,
+  batchDeleteUsers,
+  updateUserStatus,
+  updateUserTags,
+
 }

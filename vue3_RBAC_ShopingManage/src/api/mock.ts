@@ -39,31 +39,31 @@ Mock.mock(/\/api\/user\/getUserDetail/, 'get', (options: any) => {
   const id = url.split('id=')[1]?.split('&')[0]
   return userApi.getUserDetail(id)
 })
-Mock.mock(/\/api\/user\/addUser/, 'post', (options: any) => {
-  const data = JSON.parse(options.body)
-  return userApi.addUser(data)
-})
-Mock.mock(/\/api\/user\/updateUser/, 'put', (options: any) => {
-  const data = JSON.parse(options.body)
-  return userApi.updateUser(data)
-})
-Mock.mock(/\/api\/user\/deleteUser/, 'delete', (options: any) => {
-  const url = options.url
-  const id = url.split('id=')[1]?.split('&')[0]
-  return userApi.deleteUser(id)
-})
-Mock.mock(/\/api\/user\/batchDeleteUsers/, 'post', (options: any) => {
-  const data = JSON.parse(options.body)
-  return userApi.batchDeleteUsers(data.ids)
-})
-Mock.mock(/\/api\/user\/updateUserStatus/, 'put', (options: any) => {
-  const data = JSON.parse(options.body)
-  return userApi.updateUserStatus(data.id, data.status)
-})
-Mock.mock(/\/api\/user\/updateUserTags/, 'put', (options: any) => {
-  const data = JSON.parse(options.body)
-  return userApi.updateUserTags(data.id, data.tags)
-})
+// Mock.mock(/\/api\/user\/addUser/, 'post', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return userApi.addUser(data)
+// })
+// Mock.mock(/\/api\/user\/updateUser/, 'put', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return userApi.updateUser(data)
+// })
+// // Mock.mock(/\/api\/user\/deleteUser/, 'delete', (options: any) => {
+//   const url = options.url
+//   const id = url.split('id=')[1]?.split('&')[0]
+//   return userApi.deleteUser(id)
+// })
+// Mock.mock(/\/api\/user\/batchDeleteUsers/, 'post', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return userApi.batchDeleteUsers(data.ids)
+// })
+// // Mock.mock(/\/api\/user\/updateUserStatus/, 'put', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return userApi.updateUserStatus(data.id, data.status)
+// })
+// Mock.mock(/\/api\/user\/updateUserTags/, 'put', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return userApi.updateUserTags(data.id, data.tags)
+// })
 Mock.mock(/\/api\/user\/getRoleList/, 'get', userApi.getRoleList)
 Mock.mock(/\/api\/user\/getDepartmentList/, 'get', userApi.getDepartmentList)
 

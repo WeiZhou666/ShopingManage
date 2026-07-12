@@ -25,16 +25,16 @@
         <el-form-item label="用户标签">
           <el-select v-model="searchTags" placeholder="请选择标签" clearable style="width: 120px">
             <el-option label="全部" value="" />
-            <el-option label="优质客户" :value="1" />
-            <el-option label="普通客户" :value="2" />
-            <el-option label="恶意用户" :value="3" />
+            <el-option label="优质客户" value="1" />
+            <el-option label="普通客户" value="2" />
+            <el-option label="恶意用户" value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchStatus" placeholder="请选择状态" clearable style="width: 100px">
             <el-option label="全部" value="" />
-            <el-option label="正常" :value="1" />
-            <el-option label="已禁用" :value="0" />
+            <el-option label="正常" value="1" />
+            <el-option label="已禁用" value="0" />
           </el-select>
         </el-form-item>
         <el-form-item label="注册时间">
@@ -65,14 +65,14 @@
         <el-table-column prop="id" label="用户ID" width="100" />
         <el-table-column prop="nickname" label="用户昵称" width="120" />
         <el-table-column prop="phone" label="手机号" width="130" />
-        <el-table-column prop="registerTime" label="注册时间" width="160" />
-        <el-table-column prop="lastLoginTime" label="最后登录" width="160" />
-        <el-table-column prop="totalConsumption" label="累计消费" width="120">
+        <el-table-column prop="register_time" label="注册时间" width="160" />
+        <el-table-column prop="last_login_time" label="最后登录" width="160" />
+        <el-table-column prop="total_consumption" label="累计消费" width="120">
           <template #default="{ row }">
-            {{ row.totalConsumption.toFixed(2) }} 元
+            {{ row.total_consumption.toFixed(2) }} 元
           </template>
         </el-table-column>
-        <el-table-column prop="orderCount" label="订单数" width="80" />
+        <el-table-column prop="order_count" label="订单数" width="80" />
         <el-table-column prop="tags" label="用户标签" width="120">
           <template #default="{ row }">
             <el-tag :type="getTagType(row.tags)" size="small">
@@ -179,10 +179,10 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="累计消费">
-          <el-input-number v-model="addForm.totalConsumption" :min="0" :precision="2" :step="100" />
+          <el-input-number v-model="addForm.total_consumption" :min="0" :precision="2" :step="100" />
         </el-form-item>
         <el-form-item label="订单数">
-          <el-input-number v-model="addForm.orderCount" :min="0" :step="1" />
+          <el-input-number v-model="addForm.order_count" :min="0" :step="1" />
         </el-form-item>
       </el-form>
 
@@ -230,7 +230,7 @@ const searchDateRange = ref([])
 // 编辑标签对话框
 const tagDialogVisible = ref(false)
 const editTagsForm = reactive({
-  userId: '',
+  id: '',
   tags: 2
 })
 
@@ -238,14 +238,14 @@ const editTagsForm = reactive({
 const addDialogVisible = ref(false)
 const addFormRef = ref()
 const addSubmitLoading = ref(false)
-// 新增用户表单默认数据，totalConsumption/orderCount/registerTime 由后端生成
+// 新增用户表单默认数据，total_consumption/order_count/register_time 由后端生成
 const initialAddForm = () => ({
   nickname: '',
   phone: '',
   tags: 2,
   status: 1,
-  totalConsumption: 0,
-  orderCount: 0
+  total_consumption: 0,
+  order_count: 0
 })
 const addForm = reactive(initialAddForm())
 
@@ -282,7 +282,7 @@ const updateUrlParams = () => {
   if (pageNum.value !== 1) query.pageNum = pageNum.value
   if (pageSize.value !== 10) query.pageSize = pageSize.value
   if (searchKeyword.value) query.keyword = searchKeyword.value
-  if (searchTags.value) query.tag = searchTags.value
+  if (searchTags.value) query.tags = searchTags.value
   if (searchStatus.value) query.status = searchStatus.value
   if (searchDateRange.value[0]) query.startDate = formatDate(searchDateRange.value[0])
   if (searchDateRange.value[1]) query.endDate = formatDate(searchDateRange.value[1])
@@ -385,8 +385,8 @@ const handleSaveAdd = async () => {
       phone: addForm.phone,
       tags: addForm.tags,
       status: addForm.status,
-      totalConsumption: addForm.totalConsumption,
-      orderCount: addForm.orderCount
+      total_consumption: addForm.total_consumption,
+      order_count: addForm.order_count
     })
     if (res && res.code === 200) {
       ElMessage.success(res.msg || '新增成功')
@@ -415,7 +415,7 @@ const handleView = (row) => {
 
 // 编辑标签
 const handleEditTags = (row) => {
-  editTagsForm.userId = row.id
+  editTagsForm.id = row.id
   editTagsForm.tags = row.tags
   tagDialogVisible.value = true
 }
@@ -423,15 +423,14 @@ const handleEditTags = (row) => {
 // 保存标签
 const handleSaveTags = async () => {
   try {
-    await updateUserTags(editTagsForm.userId, editTagsForm.tags)
-    // 同时禁用该用户 - 本地直接更新并触发响应式更新
-    const idx = tableData.value.findIndex(u => u.id == editTagsForm.userId)
+    await updateUserTags(editTagsForm.id, editTagsForm.tags)
+    // 仅更新标签，保持其他字段不变
+    const idx = tableData.value.findIndex(u => u.id == editTagsForm.id)
     if (idx > -1) {
-      tableData.value[idx].status = 0
-      // 强制触发响应式更新
+      tableData.value[idx].tags = editTagsForm.tags
       tableData.value = [...tableData.value]
     }
-    ElMessage.success('标签更新成功，用户已禁用')
+    ElMessage.success('标签更新成功')
     tagDialogVisible.value = false
   } catch (error) {
     ElMessage.error('操作失败')
@@ -440,6 +439,7 @@ const handleSaveTags = async () => {
 
 // 切换状态（禁用/启用）
 const handleToggleStatus = async (row) => {
+  console.log(row)
   const newStatus = row.status === 1 ? 0 : 1
   const actionText = newStatus === 1 ? '启用' : '禁用'
 
@@ -458,6 +458,7 @@ const handleToggleStatus = async (row) => {
       ElMessage.error(`${actionText}失败`)
     }
   }
+  
 }
 
 // 删除用户
@@ -518,15 +519,15 @@ const initParamsFromUrl = () => {
   const q = route.query
   const newPageNum = parseInt(q.pageNum) || 1
   const newPageSize = parseInt(q.pageSize) || 10
-  const newPhone = q.keyword || ''
-  const newTag = q.tags || ''
+  const newKeyword = q.keyword || ''
+  const newTags = q.tags || ''
   const newStatus = q.status || ''
 
   // 只有当值真正变化时才更新，避免不必要的响应式触发
   if (pageNum.value !== newPageNum) pageNum.value = newPageNum
   if (pageSize.value !== newPageSize) pageSize.value = newPageSize
-  if (searchKeyword.value !== newPhone) searchKeyword.value = newPhone
-  if (searchTags.value !== newTag) searchTags.value = newTag
+  if (searchKeyword.value !== newKeyword) searchKeyword.value = newKeyword
+  if (searchTags.value !== newTags) searchTags.value = newTags
   if (searchStatus.value !== newStatus) searchStatus.value = newStatus
 
   // 处理日期范围，确保响应式更新
