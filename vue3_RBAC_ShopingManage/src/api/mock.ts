@@ -34,11 +34,11 @@ Mock.mock(/\/api\/home\/getPieChartData/, 'get', homeApi.getPieChartData)
 //   }
 //   return userApi.getUserList(params)
 // })
-Mock.mock(/\/api\/user\/getUserDetail/, 'get', (options: any) => {
-  const url = options.url
-  const id = url.split('id=')[1]?.split('&')[0]
-  return userApi.getUserDetail(id)
-})
+// Mock.mock(/\/api\/user\/getUserDetail/, 'get', (options: any) => {
+//   const url = options.url
+//   const id = url.split('id=')[1]?.split('&')[0]
+//   return userApi.getUserDetail(id)
+// })
 // Mock.mock(/\/api\/user\/addUser/, 'post', (options: any) => {
 //   const data = JSON.parse(options.body)
 //   return userApi.addUser(data)

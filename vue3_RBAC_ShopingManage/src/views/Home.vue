@@ -84,7 +84,7 @@ let pieChart = null;
 
 
 const getCountData = async () => {
-  const data = await api.gettCountData();
+  const data = await api.getCountData();
   const iconMap = { ShoppingCart, Money, Box, Clock, ChatDotRound };
   countData.value = data.data.countData.map(item => ({
     ...item,

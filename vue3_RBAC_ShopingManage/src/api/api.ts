@@ -12,7 +12,7 @@ export const getTableData = () => {
   })
 }
 
-export const gettCountData = () => {
+export const getCountData = () => {
   return request({
     url: '/api/home/getCountData',
     method: 'get'
@@ -41,12 +41,11 @@ export const getPieChartData = () => {
 }
 
 // User 相关接口
-export const getUserList = (data = {}) => {
+export const getUserList = (params = {}) => {
   return request({
     url: '/api/user/getUserList',
     method: 'get',
-    data,
-
+    params
   })
 }
 
@@ -54,6 +53,47 @@ export const getUserDetail = (id: string | number) => {
   return request({
     url: '/api/user/getUserDetail',
     method: 'get',
+    params: { id }
+  })
+}
+
+// 收货地址 API
+export const getAddressList = (userId: string | number) => {
+  return request({
+    url: '/api/userAddress/getAddressList',
+    method: 'get',
+    params: { userId }
+  })
+}
+
+export const addAddress = (data: any) => {
+  return request({
+    url: '/api/userAddress/addAddress',
+    method: 'post',
+    data
+  })
+}
+
+export const updateAddress = (data: any) => {
+  return request({
+    url: '/api/userAddress/updateAddress',
+    method: 'put',
+    data
+  })
+}
+
+export const deleteAddress = (id: string | number) => {
+  return request({
+    url: '/api/userAddress/deleteAddress',
+    method: 'delete',
+    params: { id }
+  })
+}
+
+export const setDefaultAddress = (id: string | number) => {
+  return request({
+    url: '/api/userAddress/setDefaultAddress',
+    method: 'put',
     data: { id }
   })
 }
@@ -121,11 +161,11 @@ export const getDepartmentList = () => {
 }
 
 // Order 相关接口
-export const getOrderList = (data = {}) => {
+export const getOrderList = (params = {}) => {
   return request({
     url: '/api/order/getOrderList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -149,16 +189,16 @@ export const getOrderDetail = (orderNo: string) => {
   return request({
     url: '/api/order/getOrderDetail',
     method: 'get',
-    data: { orderNo }
+    params: { orderNo }
   })
 }
 
 // Product 相关接口
-export const getProductList = (data = {}) => {
+export const getProductList = (params = {}) => {
   return request({
     url: '/api/product/getProductList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -219,11 +259,11 @@ export const updateProductStatus = (id: string | number, status: number) => {
 }
 
 // Logistics 相关接口
-export const getLogisticsCompanyList = (data = {}) => {
+export const getLogisticsCompanyList = (params = {}) => {
   return request({
     url: '/api/logistics/getCompanyList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -259,20 +299,20 @@ export const deleteLogisticsCompany = (id: string | number) => {
   })
 }
 
-export const getShipmentRecordList = (data = {}) => {
+export const getShipmentRecordList = (params = {}) => {
   return request({
     url: '/api/logistics/getShipmentRecordList',
     method: 'get',
-    data
+    params
   })
 }
 
 // Marketing 相关接口
-export const getCouponList = (data = {}) => {
+export const getCouponList = (params = {}) => {
   return request({
     url: '/api/marketing/getCouponList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -300,11 +340,11 @@ export const deleteCoupon = (id: string | number) => {
   })
 }
 
-export const getSeckillList = (data = {}) => {
+export const getSeckillList = (params = {}) => {
   return request({
     url: '/api/marketing/getSeckillList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -332,11 +372,11 @@ export const deleteSeckill = (id: string | number) => {
   })
 }
 
-export const getDiscountList = (data = {}) => {
+export const getDiscountList = (params = {}) => {
   return request({
     url: '/api/marketing/getDiscountList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -365,11 +405,11 @@ export const deleteDiscount = (id: string | number) => {
 }
 
 // Staff 相关接口
-export const getStaffList = (data = {}) => {
+export const getStaffList = (params = {}) => {
   return request({
     url: '/api/staff/getStaffList',
     method: 'get',
-    data
+    params
   })
 }
 
@@ -439,12 +479,17 @@ export const getStaffRoleList = () => {
 // 向后兼容：保留默认导出
 export default {
   getTableData,
-  gettCountData,
+  getCountData,
   getChartData,
   getBarChartData,
   getPieChartData,
   getUserList,
   getUserDetail,
+  getAddressList,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress,
   addUser,
   updateUser,
   deleteUser,

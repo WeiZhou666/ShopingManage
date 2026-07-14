@@ -122,7 +122,10 @@
       <!-- 收货地址 -->
       <el-card shadow="hover" class="info-card">
         <template #header>
-          <div class="card-header"><span>收货地址</span></div>
+          <div class="card-header">
+            <span>收货地址</span>
+            <el-button size="small" text type="primary" @click="openAddAddress">新增地址</el-button>
+          </div>
         </template>
         <el-table :data="userData.addresses" style="width: 100%">
           <el-table-column label="默认" width="80">
@@ -133,9 +136,9 @@
           <el-table-column prop="name" label="收货人" width="120" />
           <el-table-column prop="phone" label="手机号" width="150" />
           <el-table-column prop="address" label="收货地址" />
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="{ row }">
-              <el-button size="small" text @click="setDefault(row)">设为默认</el-button>
+              <el-button size="small" text :disabled="row.isDefault" @click="setDefault(row)">设为默认</el-button>
               <el-button size="small" text @click="editAddress(row)">编辑</el-button>
               <el-button size="small" text type="danger" v-debounce:500="() => deleteAddress(row)">删除</el-button>
             </template>
@@ -182,6 +185,32 @@
       </el-card>
     </template>
 
+    <!-- 编辑/新增地址弹窗 -->
+    <el-dialog v-model="addressDialogVisible" :title="addressDialogTitle" width="480px"
+      @close="handleAddressDialogClose">
+      <el-form ref="addressFormRef" :model="addressForm" :rules="addressFormRules" label-width="80px">
+        <el-form-item label="收货人" prop="name">
+          <el-input v-model="addressForm.name" placeholder="请输入收货人姓名" maxlength="20" show-word-limit clearable />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="addressForm.phone" placeholder="请输入手机号" maxlength="11" clearable />
+        </el-form-item>
+        <el-form-item label="收货地址" prop="address">
+          <el-input v-model="addressForm.address" type="textarea" :rows="2" placeholder="请输入详细地址" maxlength="200"
+            show-word-limit />
+        </el-form-item>
+        <el-form-item label="设为默认">
+          <el-switch v-model="addressForm.isDefault" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addressDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="addressSubmitLoading" v-debounce:500="saveAddress">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- 修改标签弹窗 -->
     <el-dialog v-model="tagDialogVisible" title="修改用户标签" width="400px">
       <el-form :model="tagForm" label-width="80px">
@@ -204,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -264,7 +293,15 @@ const loadUserDetail = async (id) => {
   try {
     const res = await api.getUserDetail(id)
     if (res && res.data) {
-      Object.assign(userData, res.data)
+      const data = { ...res.data }
+      // 后端 snake_case → 前端 camelCase
+      if (Array.isArray(data.addresses)) {
+        data.addresses = data.addresses.map(a => ({
+          ...a,
+          isDefault: a.is_default ?? a.isDefault ?? 0
+        }))
+      }
+      Object.assign(userData, data)
       hasUserData.value = true
     } else {
       Object.assign(userData, { id: '', nickname: '', tags: 2, addresses: [], recentOrders: [], operationLogs: [] })
@@ -315,20 +352,188 @@ const saveTags = async () => {
   }
 }
 
-const setDefault = (row) => {
-  userData.addresses.forEach(item => { item.isDefault = item.id === row.id })
-  ElMessage.success('已设为默认地址')
+// 地址相关
+const addressDialogVisible = ref(false)
+const addressDialogTitle = ref('编辑地址')
+const addressSubmitLoading = ref(false)
+const addressFormRef = ref()
+// 弹窗表单：editMode=true 编辑，false 新增
+const addressForm = reactive({
+  id: null,
+  user_id: null,
+  name: '',
+  phone: '',
+  address: '',
+  isDefault: 0,
+  editMode: false
+})
+
+// 地址表单校验规则
+const addressFormRules = {
+  name: [
+    { required: true, message: '请输入收货人姓名', trigger: 'blur' },
+    { min: 1, max: 20, message: '姓名长度在 1-20 个字符', trigger: 'blur' }
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
+  ],
+  address: [
+    { required: true, message: '请输入详细地址', trigger: 'blur' },
+    { min: 1, max: 200, message: '地址长度在 1-200 个字符', trigger: 'blur' }
+  ]
 }
 
-const editAddress = () => { ElMessage.info('编辑地址功能') }
+// 重置地址表单
+const resetAddressForm = () => {
+  addressForm.id = null
+  addressForm.user_id = null
+  addressForm.name = ''
+  addressForm.phone = ''
+  addressForm.address = ''
+  addressForm.isDefault = 0
+  addressForm.editMode = false
+}
 
+// 打开"新增地址"弹窗
+const openAddAddress = () => {
+  resetAddressForm()
+  addressForm.user_id = userData.id
+  addressDialogTitle.value = '新增地址'
+  addressForm.editMode = false
+  addressDialogVisible.value = true
+  nextTick(() => addressFormRef.value?.clearValidate())
+}
+
+// 打开"编辑地址"弹窗
+const editAddress = (row) => {
+  resetAddressForm()
+  addressForm.id = row.id
+  addressForm.user_id = row.user_id
+  addressForm.name = row.name
+  addressForm.phone = row.phone
+  addressForm.address = row.address
+  addressForm.isDefault = row.isDefault
+  addressDialogTitle.value = '编辑地址'
+  addressForm.editMode = true
+  addressDialogVisible.value = true
+  nextTick(() => addressFormRef.value?.clearValidate())
+}
+
+// 关闭地址弹窗时清理
+const handleAddressDialogClose = () => {
+  addressFormRef.value?.resetFields()
+  resetAddressForm()
+  addressSubmitLoading.value = false
+}
+
+// 保存地址（新增或编辑）
+const saveAddress = async () => {
+  if (!addressFormRef.value) return
+  try {
+    await addressFormRef.value.validate()
+  } catch {
+    return
+  }
+
+  addressSubmitLoading.value = true
+  try {
+    if (addressForm.editMode) {
+      // 编辑
+      const res = await api.updateAddress({
+        id: addressForm.id,
+        name: addressForm.name,
+        phone: addressForm.phone,
+        address: addressForm.address,
+        is_default: addressForm.isDefault
+      })
+      if (res && res.code === 200) {
+        // 本地更新该行
+        const idx = userData.addresses.findIndex(a => a.id === addressForm.id)
+        if (idx > -1) {
+          // 若设为默认，先把其他地址的 isDefault 清掉
+          if (addressForm.isDefault === 1) {
+            userData.addresses.forEach((item, i) => {
+              item.isDefault = i === idx ? 1 : 0
+            })
+          } else {
+            userData.addresses[idx].name = addressForm.name
+            userData.addresses[idx].phone = addressForm.phone
+            userData.addresses[idx].address = addressForm.address
+            userData.addresses[idx].isDefault = addressForm.isDefault
+          }
+        }
+        ElMessage.success('地址修改成功')
+        addressDialogVisible.value = false
+      } else {
+        ElMessage.error(res?.msg || '修改失败')
+      }
+    } else {
+      // 新增
+      const res = await api.addAddress({
+        user_id: addressForm.user_id,
+        name: addressForm.name,
+        phone: addressForm.phone,
+        address: addressForm.address,
+        is_default: addressForm.isDefault
+      })
+      if (res && res.code === 200) {
+        if (addressForm.isDefault === 1) {
+          userData.addresses.forEach(item => { item.isDefault = 0 })
+        }
+        userData.addresses.push({
+          id: res.data?.id,
+          user_id: addressForm.user_id,
+          name: addressForm.name,
+          phone: addressForm.phone,
+          address: addressForm.address,
+          isDefault: addressForm.isDefault
+        })
+        ElMessage.success('地址新增成功')
+        addressDialogVisible.value = false
+      } else {
+        ElMessage.error(res?.msg || '新增失败')
+      }
+    }
+  } catch (error) {
+    ElMessage.error('操作失败')
+  } finally {
+    addressSubmitLoading.value = false
+  }
+}
+
+// 设为默认地址
+const setDefault = async (row) => {
+  try {
+    const res = await api.setDefaultAddress(row.id)
+    if (res && res.code === 200) {
+      userData.addresses.forEach(item => { item.isDefault = item.id === row.id })
+      ElMessage.success('已设为默认地址')
+    } else {
+      ElMessage.error(res?.msg || '设置失败')
+    }
+  } catch {
+    ElMessage.error('设置失败')
+  }
+}
+
+// 删除地址
 const deleteAddress = (row) => {
   ElMessageBox.confirm('确定要删除该地址吗？', '提示', {
     confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
-  }).then(() => {
-    const index = userData.addresses.findIndex(item => item.id === row.id)
-    if (index > -1) userData.addresses.splice(index, 1)
-    ElMessage.success('删除成功')
+  }).then(async () => {
+    try {
+      const res = await api.deleteAddress(row.id)
+      if (res && res.code === 200) {
+        const index = userData.addresses.findIndex(item => item.id === row.id)
+        if (index > -1) userData.addresses.splice(index, 1)
+        ElMessage.success('删除成功')
+      } else {
+        ElMessage.error(res?.msg || '删除失败')
+      }
+    } catch {
+      ElMessage.error('删除失败')
+    }
   }).catch(() => { })
 }
 

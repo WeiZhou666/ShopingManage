@@ -1,6 +1,8 @@
-import user from '../model/user.js'
+import user from '../../model/user/user.js'
+import userAddress from '../../model/user/userAddress.js'
+import operationLog from '../../model/user/operationLog.js'
 import { Op } from 'sequelize'
-import logger from '../util/log4js.js'
+import logger from '../../util/log4js.js'
 
 // 用户列表分页 + 筛选
 // 支持参数：pageNum, pageSize, keyword(匹配 id/昵称/手机号), tags(1优质/2普通/3恶意), status(1正常/0禁用), startDate, endDate
@@ -195,6 +197,65 @@ const updateUserStatus = async (ctx) => {
     }
   }
 }
+// 获取用户详情（聚合用户基本信息 + 收货地址 + 操作日志）
+// 参数：id
+const getUserDetail = async (ctx) => {
+  try {
+    const { id } = ctx.query
+    if (!id) {
+      ctx.body = { code: 400, msg: 'id不能为空', data: null }
+      return
+    }
+
+    // 不查 password 字段
+    const userInfo = await user.findByPk(id, {
+      attributes: { exclude: ['password'] }
+    })
+    if (!userInfo) {
+      ctx.body = { code: 404, msg: '未找到该用户', data: null }
+      return
+    }
+
+    // 并行查询地址和日志
+    const [addresses, logs] = await Promise.all([
+      userAddress.findAll({
+        where: { user_id: id },
+        order: [['is_default', 'DESC'], ['id', 'ASC']]
+      }),
+      operationLog.findAll({
+        where: { user_id: id },
+        order: [['created_at', 'DESC']],
+        limit: 50
+      })
+    ])
+
+    // 日志字段名转换：created_at → time 兼容前端
+    const operationLogs = logs.map(log => ({
+      id: log.id,
+      time: log.created_at,
+      operator: log.operator,
+      action: log.action
+    }))
+
+    ctx.body = {
+      code: 200,
+      msg: '查询成功',
+      data: {
+        ...userInfo.toJSON(),
+        addresses,
+        operationLogs
+      }
+    }
+  } catch (err) {
+    logger.error('查询用户详情失败:', err)
+    ctx.body = {
+      code: 500,
+      msg: '查询失败: ' + err.message,
+      data: null
+    }
+  }
+}
+
 //更新用户标签
 const updateUserTags = async (ctx) => {
   try {
@@ -222,12 +283,11 @@ const updateUserTags = async (ctx) => {
 
 export {
   getUserList,
+  getUserDetail,
   addUser,
-  // getUserDetail,
   // updateUser,
   deleteUser,
   batchDeleteUsers,
   updateUserStatus,
   updateUserTags,
-
 }
