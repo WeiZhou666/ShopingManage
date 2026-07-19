@@ -10,6 +10,7 @@ import index from './routes/index.js'// 引入首页路由
 import user from './routes/user/user.js'// 引入用户路由
 import userAddress from './routes/user/userAddress.js'// 引入收货地址路由
 import operationLog from './routes/user/operationLog.js'// 引入操作日志路由
+import staff from './routes/staff/staff.js'// 引入员工路由
 import { fileURLToPath } from 'url'// 引入文件路径模块
 import { dirname, join } from 'path'// 引入路径模块
 import sequelize from './config/db.js'// 引入数据库模块
@@ -52,8 +53,7 @@ app.use(index.routes(), index.allowedMethods())
 app.use(user.routes(), user.allowedMethods())
 app.use(userAddress.routes(), userAddress.allowedMethods())
 app.use(operationLog.routes(), operationLog.allowedMethods())
-
-
+app.use(staff.routes(), staff.allowedMethods())
 
 app.listen(port, () => {
   console.log(`🚀 Koa 服务已启动：http://localhost:${port}`)

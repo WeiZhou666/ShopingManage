@@ -94,7 +94,7 @@ export const setDefaultAddress = (id: string | number) => {
   return request({
     url: '/api/userAddress/setDefaultAddress',
     method: 'put',
-    data: { id }
+    params: { id }
   })
 }
 
@@ -110,7 +110,7 @@ export const updateUser = (data: any) => {
   return request({
     url: '/api/user/updateUser',
     method: 'put',
-    data
+    params: data
   })
 }
 
@@ -126,7 +126,7 @@ export const batchDeleteUsers = (ids: any[]) => {
   return request({
     url: '/api/user/batchDeleteUsers',
     method: 'post',
-    data: { ids }
+    params: { ids }
   })
 }
 
@@ -134,7 +134,7 @@ export const updateUserStatus = (id: string | number, status: number) => {
   return request({
     url: '/api/user/updateUserStatus',
     method: 'put',
-    data: { id, status }
+    params: { id, status }
   })
 }
 
@@ -142,7 +142,7 @@ export const updateUserTags = (id: string | number, tags: number) => {
   return request({
     url: '/api/user/updateUserTags',
     method: 'put',
-    data: { id, tags }
+    params: { id, tags }
   })
 }
 
@@ -173,7 +173,7 @@ export const deliveryOrder = (id: string | number) => {
   return request({
     url: '/api/order/deliveryOrder',
     method: 'put',
-    data: { id }
+    params: { id }
   })
 }
 
@@ -181,7 +181,7 @@ export const closeOrder = (id: string | number) => {
   return request({
     url: '/api/order/closeOrder',
     method: 'put',
-    data: { id }
+    params: { id }
   })
 }
 
@@ -222,7 +222,7 @@ export const addProduct = (data: any) => {
   return request({
     url: '/api/product/addProduct',
     method: 'post',
-    data
+    params: data
   })
 }
 
@@ -230,7 +230,7 @@ export const updateProduct = (data: any) => {
   return request({
     url: '/api/product/updateProduct',
     method: 'put',
-    data
+    params: data
   })
 }
 
@@ -246,7 +246,7 @@ export const batchDeleteProducts = (ids: any[]) => {
   return request({
     url: '/api/product/batchDeleteProducts',
     method: 'post',
-    data: { ids }
+    params: { ids }
   })
 }
 
@@ -254,7 +254,7 @@ export const updateProductStatus = (id: string | number, status: number) => {
   return request({
     url: '/api/product/updateProductStatus',
     method: 'put',
-    data: { id, status }
+    params: { id, status }
   })
 }
 
@@ -271,7 +271,7 @@ export const addLogisticsCompany = (data: any) => {
   return request({
     url: '/api/logistics/addCompany',
     method: 'post',
-    data
+    params: data
   })
 }
 
@@ -279,7 +279,7 @@ export const updateLogisticsCompany = (data: any) => {
   return request({
     url: '/api/logistics/updateCompany',
     method: 'put',
-    data
+    params: data
   })
 }
 
@@ -287,7 +287,7 @@ export const updateLogisticsCompanyStatus = (id: string | number, status: number
   return request({
     url: '/api/logistics/updateCompanyStatus',
     method: 'put',
-    data: { id, status }
+    params: { id, status }
   })
 }
 
@@ -320,7 +320,7 @@ export const addCoupon = (data: any) => {
   return request({
     url: '/api/marketing/addCoupon',
     method: 'post',
-    data
+    params: data
   })
 }
 
@@ -328,7 +328,7 @@ export const updateCoupon = (data: any) => {
   return request({
     url: '/api/marketing/updateCoupon',
     method: 'put',
-    data
+    params: data
   })
 }
 
@@ -456,7 +456,7 @@ export const batchDeleteStaff = (ids: any[]) => {
 export const toggleStaffStatus = (id: string | number, status: string) => {
   return request({
     url: '/api/staff/toggleStaffStatus',
-    method: 'put',
+    method: 'post',
     data: { id, status }
   })
 }
@@ -464,7 +464,7 @@ export const toggleStaffStatus = (id: string | number, status: string) => {
 export const resetStaffPassword = (id: string | number) => {
   return request({
     url: '/api/staff/resetStaffPassword',
-    method: 'put',
+    method: 'post',
     data: { id }
   })
 }

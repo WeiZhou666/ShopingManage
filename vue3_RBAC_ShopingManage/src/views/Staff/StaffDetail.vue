@@ -65,6 +65,24 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { addStaff, updateStaff } from '@/api/api'
+
+// 角色 name → id 映射（与后端 role_id 对应）
+const roleNameToId = {
+  super_admin: 1,
+  operator: 2,
+  order_staff: 3,
+  finance: 4,
+  customer_service: 5
+}
+// 角色 id → name 映射
+const roleIdToName = {
+  1: 'super_admin',
+  2: 'operator',
+  3: 'order_staff',
+  4: 'finance',
+  5: 'customer_service'
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -118,15 +136,34 @@ const handleSubmit = async () => {
   submitting.value = true
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    if (isEdit.value) {
-      ElMessage.success('员工信息已保存')
-    } else {
-      ElMessage.success('员工创建成功，初始密码为 123456')
+    const requestData = {
+      name: form.name,
+      account: form.account,
+      phone: form.phone,
+      role_id: roleNameToId[form.role] || 5,
+      status: '1'
     }
 
-    router.push('/staff/stafflist')
+    if (isEdit.value) {
+      const editData = { id: route.params.id, ...requestData }
+      if (form.password) editData.password = form.password
+      const res = await updateStaff(editData)
+      if (res && res.code === 200) {
+        ElMessage.success('员工信息已保存')
+        router.push('/staff/stafflist')
+      } else {
+        ElMessage.error(res?.msg || '保存失败')
+      }
+    } else {
+      requestData.password = form.password || '123456'
+      const res = await addStaff(requestData)
+      if (res && res.code === 200) {
+        ElMessage.success('员工创建成功，初始密码为 123456')
+        router.push('/staff/stafflist')
+      } else {
+        ElMessage.error(res?.msg || '创建失败')
+      }
+    }
   } catch {
     ElMessage.error('操作失败，请重试')
   } finally {
@@ -147,7 +184,8 @@ onMounted(() => {
         form.name = data.name
         form.account = data.account
         form.phone = data.phone
-        form.role = data.role
+        // role_id 数字 → 角色名称字符串
+        form.role = roleIdToName[data.role_id] || data.role_id
       } catch {
         // 解析失败
       }

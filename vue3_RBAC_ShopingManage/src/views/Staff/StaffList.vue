@@ -18,17 +18,17 @@
         </el-button>
       </div>
       <el-form :inline="true" @submit.prevent="handleSearch" class="search-form">
-        <el-form-item label="姓名/账号">
-          <el-input v-model="searchKeyword" placeholder="输入姓名或账号搜索" clearable style="width: 180px" />
+        <el-form-item label="工号/姓名/手机号">
+          <el-input v-model="searchKeyword" placeholder="输入工号/姓名或手机号搜索" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="searchRole" placeholder="请选择角色" clearable style="width: 140px">
             <el-option label="全部" value="" />
-            <el-option label="超级管理员" value="super_admin" />
-            <el-option label="运营人员" value="operator" />
-            <el-option label="订单专员" value="order_staff" />
-            <el-option label="财务人员" value="finance" />
-            <el-option label="普通客服" value="customer_service" />
+            <el-option label="超级管理员" value="1" />
+            <el-option label="运营人员" value="2" />
+            <el-option label="订单专员" value="3" />
+            <el-option label="财务人员" value="4" />
+            <el-option label="普通客服" value="5" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -45,6 +45,12 @@
             </el-icon>
             搜索
           </el-button>
+          <el-button type="primary" native-type="submit" v-throttle:300="handleReset">
+            <el-icon>
+              <Refresh />
+            </el-icon>
+            重置
+          </el-button>
 
         </el-form-item>
       </el-form>
@@ -54,14 +60,14 @@
     <div class="table">
       <el-table :data="tableData" style="width: 100%" v-loading="loading" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="employeeNo" label="员工工号" width="120" />
+        <el-table-column prop="employee_no" label="员工工号" width="120" />
         <el-table-column prop="name" label="姓名" width="100" />
         <el-table-column prop="account" label="账号" width="120" />
         <el-table-column prop="phone" label="手机号" width="130" />
-        <el-table-column prop="role" label="角色" width="120">
+        <el-table-column prop="role_id" label="角色" width="120">
           <template #default="{ row }">
-            <el-tag :type="getRoleTagType(row.role)" size="small">
-              {{ getRoleName(row.role) }}
+            <el-tag :type="getRoleTagType(row.role_id)" size="small">
+              {{ getRoleName(row.role_id) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -72,7 +78,9 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="lastLogin" label="最后登录" width="180" />
+        <el-table-column prop="last_login" label="最后登录" width="180" />
+        <el-table-column prop="create_time" label="创建时间" width="180" />
+
         <el-table-column fixed="right" label="操作" width="240">
           <template #default="{ row }">
             <el-button v-permission="'staff:manage'" link type="primary" size="small" @click="handleEdit(row)">
@@ -120,8 +128,17 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Delete, Search, Edit, Key, Lock, Unlock } from '@element-plus/icons-vue'
-import { staffList, roleMap } from '@/api/mockData/staff'
+import { Plus, Delete, Search, Refresh, Edit, Key, Lock, Unlock } from '@element-plus/icons-vue'
+import { getStaffList, toggleStaffStatus, resetStaffPassword, batchDeleteStaff } from '@/api/api'
+
+// 角色 ID → 名称/标签色映射（与 roles 表 id 一一对应）
+const roleIdMap = {
+  1: { name: '超级管理员', type: 'danger' },
+  2: { name: '运营人员', type: 'primary' },
+  3: { name: '订单专员', type: 'success' },
+  4: { name: '财务人员', type: 'warning' },
+  5: { name: '普通客服', type: 'info' }
+}
 
 const router = useRouter()
 
@@ -137,54 +154,53 @@ const searchRole = ref('')
 const searchStatus = ref('')
 
 
-const getRoleName = (role) => {
-  return roleMap[role]?.name || role
+const getRoleName = (roleId) => {
+  return roleIdMap[roleId]?.name || '未知'
 }
 
-const getRoleTagType = (role) => {
-  return roleMap[role]?.type || 'info'
+const getRoleTagType = (roleId) => {
+  return roleIdMap[roleId]?.type || 'info'
 }
 
 // 获取员工列表
-const fetchList = () => {
+const fetchList = async () => {
   loading.value = true
-  setTimeout(() => {
-    let result = [...staffList]
-
-    // 关键词筛选
-    if (searchKeyword.value) {
-      const keyword = searchKeyword.value.toLowerCase()
-      result = result.filter(item =>
-        item.name.toLowerCase().includes(keyword) ||
-        item.account.toLowerCase().includes(keyword)
-      )
+  try {
+    const params = {
+      pageNum: pageNum.value,
+      pageSize: pageSize.value,
     }
+    if (searchKeyword.value) params.keyword = searchKeyword.value
+    if (searchRole.value) params.role_id = searchRole.value
+    if (searchStatus.value !== '') params.status = searchStatus.value
 
-    // 角色筛选
-    if (searchRole.value) {
-      result = result.filter(item => item.role === searchRole.value)
+    const res = await getStaffList(params)
+    if (res && res.data) {
+      tableData.value = res.data.list || []
+      total.value = res.data.total || 0
+    } else {
+      tableData.value = []
+      total.value = 0
     }
-
-    // 状态筛选
-    if (searchStatus.value) {
-      result = result.filter(item => item.status === searchStatus.value)
-    }
-
-    total.value = result.length
-
-    // 分页
-    const start = (pageNum.value - 1) * pageSize.value
-    const end = start + pageSize.value
-    tableData.value = result.slice(start, end)
-
+    tableData.value = [...tableData.value]
+  } catch (error) {
+    ElMessage.error('获取员工列表失败')
+  } finally {
     loading.value = false
-  }, 300)
+  }
 }
 
 // 搜索
 const handleSearch = () => {
   pageNum.value = 1
   fetchList()
+}
+// 重置搜索
+const handleReset = () => {
+  searchKeyword.value = ''
+  searchRole.value = ''
+  searchStatus.value = ''
+  handleSearch()
 }
 
 
@@ -219,7 +235,12 @@ const handleResetPassword = async (row) => {
         type: 'warning'
       }
     )
-    ElMessage.success(`员工"${row.name}"的密码已重置为 123456`)
+    const res = await resetStaffPassword(row.id)
+    if (res && res.code === 200) {
+      ElMessage.success(`员工"${row.name}"的密码已重置为 123456`)
+    } else {
+      ElMessage.error(res?.msg || '重置密码失败')
+    }
   } catch {
     // 用户取消
   }
@@ -241,10 +262,13 @@ const handleToggleStatus = async (row) => {
         type: 'warning'
       }
     )
-
-    // 模拟API调用
-    row.status = newStatus
-    ElMessage.success(`员工"${row.name}"已${actionText}，当前状态：${statusText}`)
+    const res = await toggleStaffStatus(row.id, newStatus)
+    if (res && res.code === 200) {
+      ElMessage.success(`员工"${row.name}"已${actionText}，当前状态：${statusText}`)
+      fetchList()
+    } else {
+      ElMessage.error(res?.msg || `${actionText}失败`)
+    }
   } catch {
     // 用户取消
   }
@@ -262,8 +286,13 @@ const handleBatchDelete = async () => {
         type: 'warning'
       }
     )
-    ElMessage.success(`已删除 ${selectedIds.value.length} 名员工`)
-    fetchList()
+    const res = await batchDeleteStaff(selectedIds.value)
+    if (res && res.code === 200) {
+      ElMessage.success(`已删除 ${selectedIds.value.length} 名员工`)
+      fetchList()
+    } else {
+      ElMessage.error(res?.msg || '批量删除失败')
+    }
   } catch {
     // 用户取消
   }

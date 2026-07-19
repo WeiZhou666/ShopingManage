@@ -267,50 +267,50 @@ Mock.mock(/\/api\/marketing\/deleteDiscount/, 'delete', (options: any) => {
 })
 
 // Staff 相关接口
-Mock.mock(/\/api\/staff\/getStaffList/, 'get', (options: any) => {
-  const url = options.url
-  const params: any = {}
-  if (url.includes('?')) {
-    const searchParams = new URLSearchParams(url.split('?')[1])
-    params.pageNum = parseInt(searchParams.get('pageNum') || '1')
-    params.pageSize = parseInt(searchParams.get('pageSize') || '10')
-    params.keyword = searchParams.get('keyword') || ''
-    params.role = searchParams.get('role') || ''
-    params.status = searchParams.get('status') || ''
-  }
-  return staffApi.getStaffList(params)
-})
-Mock.mock(/\/api\/staff\/getStaffDetail/, 'get', (options: any) => {
-  const url = options.url
-  const id = parseInt(url.split('id=')[1]?.split('&')[0] || '0')
-  return staffApi.getStaffDetail(id)
-})
-Mock.mock(/\/api\/staff\/addStaff/, 'post', (options: any) => {
-  const data = JSON.parse(options.body)
-  return staffApi.addStaff(data)
-})
-Mock.mock(/\/api\/staff\/updateStaff/, 'put', (options: any) => {
-  const data = JSON.parse(options.body)
-  return staffApi.updateStaff(data.id, data)
-})
-Mock.mock(/\/api\/staff\/deleteStaff/, 'delete', (options: any) => {
-  const url = options.url
-  const id = parseInt(url.split('id=')[1]?.split('&')[0] || '0')
-  return staffApi.deleteStaff(id)
-})
-Mock.mock(/\/api\/staff\/batchDeleteStaff/, 'post', (options: any) => {
-  const data = JSON.parse(options.body)
-  return staffApi.batchDeleteStaff(data.ids)
-})
-Mock.mock(/\/api\/staff\/toggleStaffStatus/, 'put', (options: any) => {
-  const data = JSON.parse(options.body)
-  return staffApi.toggleStaffStatus(data.id, data.status)
-})
-Mock.mock(/\/api\/staff\/resetStaffPassword/, 'put', (options: any) => {
-  const data = JSON.parse(options.body)
-  return staffApi.resetStaffPassword(data.id)
-})
-Mock.mock(/\/api\/staff\/getRoleList/, 'get', staffApi.getRoleList)
+// Mock.mock(/\/api\/staff\/getStaffList/, 'get', (options: any) => {
+//   const url = options.url
+//   const params: any = {}
+//   if (url.includes('?')) {
+//     const searchParams = new URLSearchParams(url.split('?')[1])
+//     params.pageNum = parseInt(searchParams.get('pageNum') || '1')
+//     params.pageSize = parseInt(searchParams.get('pageSize') || '10')
+//     params.keyword = searchParams.get('keyword') || ''
+//     params.role = searchParams.get('role') || ''
+//     params.status = searchParams.get('status') || ''
+//   }
+//   return staffApi.getStaffList(params)
+// })
+// Mock.mock(/\/api\/staff\/getStaffDetail/, 'get', (options: any) => {
+//   const url = options.url
+//   const id = parseInt(url.split('id=')[1]?.split('&')[0] || '0')
+//   return staffApi.getStaffDetail(id)
+// })
+// Mock.mock(/\/api\/staff\/addStaff/, 'post', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return staffApi.addStaff(data)
+// })
+// Mock.mock(/\/api\/staff\/updateStaff/, 'put', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return staffApi.updateStaff(data.id, data)
+// })
+// Mock.mock(/\/api\/staff\/deleteStaff/, 'delete', (options: any) => {
+//   const url = options.url
+//   const id = parseInt(url.split('id=')[1]?.split('&')[0] || '0')
+//   return staffApi.deleteStaff(id)
+// })
+// Mock.mock(/\/api\/staff\/batchDeleteStaff/, 'post', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return staffApi.batchDeleteStaff(data.ids)
+// })
+// Mock.mock(/\/api\/staff\/toggleStaffStatus/, 'put', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return staffApi.toggleStaffStatus(data.id, data.status)
+// })
+// Mock.mock(/\/api\/staff\/resetStaffPassword/, 'put', (options: any) => {
+//   const data = JSON.parse(options.body)
+//   return staffApi.resetStaffPassword(data.id)
+// })
+// Mock.mock(/\/api\/staff\/getRoleList/, 'get', staffApi.getRoleList)
 
 
 console.log('Mock 服务已启动')
