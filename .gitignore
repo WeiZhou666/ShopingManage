@@ -34,3 +34,9 @@ Thumbs.db
 # 编译缓存
 .cache/
 .temp/
+
+#文档
+docs/
+*.md
+!README.md
+
