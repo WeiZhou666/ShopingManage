@@ -42,25 +42,25 @@
       <el-table :data="tableData" style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="活动名称" width="180" />
-        <el-table-column prop="productName" label="参与商品" width="200" />
-        <el-table-column prop="originalPrice" label="原价" width="100">
+        <el-table-column prop="product_name" label="参与商品" width="200" />
+        <el-table-column prop="original_price" label="原价" width="100">
           <template #default="{ row }">
-            ¥{{ row.originalPrice.toFixed(2) }}
+            ¥{{ row.original_price.toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column prop="seckillPrice" label="秒杀价" width="100">
+        <el-table-column prop="seckill_price" label="秒杀价" width="100">
           <template #default="{ row }">
-            <span class="seckill-price">¥{{ row.seckillPrice.toFixed(2) }}</span>
+            <span class="seckill-price">¥{{ row.seckill_price.toFixed(2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="seckillStock" label="秒杀库存" width="100" />
-        <el-table-column prop="limitQuantity" label="限购数量" width="100">
+        <el-table-column prop="seckill_stock" label="秒杀库存" width="100" />
+        <el-table-column prop="limit_quantity" label="限购数量" width="100">
           <template #default="{ row }">
-            每人限购{{ row.limitQuantity }}件
+            每人限购{{ row.limit_quantity }}件
           </template>
         </el-table-column>
-        <el-table-column prop="soldQuantity" label="已售数量" width="100" />
-        <el-table-column prop="activePeriod" label="活动时间" width="200" />
+        <el-table-column prop="sold_quantity" label="已售数量" width="100" />
+        <el-table-column prop="active_period" label="活动时间" width="200" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
@@ -100,24 +100,24 @@
           <el-input v-model="form.name" placeholder="如：618限时秒杀" />
         </el-form-item>
         <el-form-item label="参与商品">
-          <el-select v-model="form.productId" placeholder="请选择商品">
+          <el-select v-model="form.product_id" placeholder="请选择商品">
             <el-option v-for="item in productOptions" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="原价">
-          <el-input v-model.number="form.originalPrice" placeholder="商品原价" style="width: 200px" />
+          <el-input v-model.number="form.original_price" placeholder="商品原价" style="width: 200px" />
           <span style="margin-left: 10px">元</span>
         </el-form-item>
         <el-form-item label="秒杀价">
-          <el-input v-model.number="form.seckillPrice" placeholder="活动期间的价格" style="width: 200px" />
+          <el-input v-model.number="form.seckill_price" placeholder="活动期间的价格" style="width: 200px" />
           <span style="margin-left: 10px">元</span>
         </el-form-item>
         <el-form-item label="秒杀库存">
-          <el-input v-model.number="form.seckillStock" placeholder="本次秒杀活动的库存数量" style="width: 200px" />
+          <el-input v-model.number="form.seckill_stock" placeholder="本次秒杀活动的库存数量" style="width: 200px" />
           <span style="margin-left: 10px">件</span>
         </el-form-item>
         <el-form-item label="限购数量">
-          <el-input v-model.number="form.limitQuantity" placeholder="每个用户最多购买几件" style="width: 200px" />
+          <el-input v-model.number="form.limit_quantity" placeholder="每个用户最多购买几件" style="width: 200px" />
           <span style="margin-left: 10px">件/人</span>
         </el-form-item>
         <el-form-item label="活动时间">
@@ -156,11 +156,11 @@ const isEdit = ref(false)
 const form = reactive({
   id: '',
   name: '',
-  productId: '',
-  originalPrice: 0,
-  seckillPrice: 0,
-  seckillStock: 0,
-  limitQuantity: 1,
+  product_id: '',
+  original_price: 0,
+  seckill_price: 0,
+  seckill_stock: 0,
+  limit_quantity: 1,
   dateRange: []
 })
 
@@ -230,11 +230,11 @@ const handleAdd = () => {
   isEdit.value = false
   form.id = ''
   form.name = ''
-  form.productId = ''
-  form.originalPrice = 0
-  form.seckillPrice = 0
-  form.seckillStock = 0
-  form.limitQuantity = 1
+  form.product_id = ''
+  form.original_price = 0
+  form.seckill_price = 0
+  form.seckill_stock = 0
+  form.limit_quantity = 1
   form.dateRange = []
   dialogVisible.value = true
 }
@@ -243,12 +243,12 @@ const handleEdit = (row) => {
   isEdit.value = true
   form.id = row.id
   form.name = row.name
-  form.productId = row.productId
-  form.originalPrice = row.originalPrice
-  form.seckillPrice = row.seckillPrice
-  form.seckillStock = row.seckillStock
-  form.limitQuantity = row.limitQuantity
-  const dates = row.activePeriod.split(' ~ ')
+  form.product_id = row.product_id
+  form.original_price = row.original_price
+  form.seckill_price = row.seckill_price
+  form.seckill_stock = row.seckill_stock
+  form.limit_quantity = row.limit_quantity
+  const dates = row.active_period.split(' ~ ')
   form.dateRange = dates.map(d => new Date(d.replace(/-/g, '/')))
   dialogVisible.value = true
 }
@@ -258,23 +258,23 @@ const handleSave = async () => {
     ElMessage.error('请输入活动名称')
     return
   }
-  if (!form.productId) {
+  if (!form.product_id) {
     ElMessage.error('请选择参与商品')
     return
   }
-  if (form.originalPrice <= 0) {
+  if (form.original_price <= 0) {
     ElMessage.error('请设置商品原价')
     return
   }
-  if (form.seckillPrice <= 0 || form.seckillPrice >= form.originalPrice) {
+  if (form.seckill_price <= 0 || form.seckill_price >= form.original_price) {
     ElMessage.error('秒杀价必须小于原价')
     return
   }
-  if (form.seckillStock <= 0) {
+  if (form.seckill_stock <= 0) {
     ElMessage.error('请设置秒杀库存')
     return
   }
-  if (form.limitQuantity <= 0) {
+  if (form.limit_quantity <= 0) {
     ElMessage.error('请设置限购数量')
     return
   }

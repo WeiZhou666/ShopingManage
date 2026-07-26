@@ -35,14 +35,14 @@
     <div class="table">
       <el-table :data="tableData" style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="shipmentTime" label="发货时间" width="150" />
-        <el-table-column prop="orderNo" label="订单编号" width="180" />
-        <el-table-column prop="receiverName" label="收货人" width="100" />
-        <el-table-column prop="companyName" label="物流公司" width="120" />
-        <el-table-column prop="trackingNo" label="快递单号" width="180">
+        <el-table-column prop="shipment_time" label="发货时间" width="150" />
+        <el-table-column prop="order_no" label="订单编号" width="180" />
+        <el-table-column prop="receiver_name" label="收货人" width="100" />
+        <el-table-column prop="company_name" label="物流公司" width="120" />
+        <el-table-column prop="tracking_no" label="快递单号" width="180">
           <template #default="{ row }">
-            <a :href="getTrackingUrl(row.companyCode, row.trackingNo)" target="_blank" class="tracking-link">
-              {{ row.trackingNo }}
+            <a :href="getTrackingUrl(row.company_code, row.tracking_no)" target="_blank" class="tracking-link">
+              {{ row.tracking_no }}
             </a>
           </template>
         </el-table-column>

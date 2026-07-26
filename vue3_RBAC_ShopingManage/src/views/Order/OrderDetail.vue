@@ -42,7 +42,7 @@
         </template>
         <div class="status-section">
           <el-tag :type="getStatusType(orderData.status)" size="large" class="current-status">
-            {{ orderData.statusText }}
+            {{ orderData.status_text }}
           </el-tag>
 
           <div class="status-timeline">
@@ -77,11 +77,11 @@
               <div class="card-header"><span>订单基本信息</span></div>
             </template>
             <el-descriptions :column="1" border>
-              <el-descriptions-item label="订单编号">{{ orderData.orderNo }}</el-descriptions-item>
-              <el-descriptions-item label="下单时间">{{ orderData.createTime }}</el-descriptions-item>
-              <el-descriptions-item label="支付方式">{{ orderData.paymentMethod }}</el-descriptions-item>
+              <el-descriptions-item label="订单编号">{{ orderData.order_no }}</el-descriptions-item>
+              <el-descriptions-item label="下单时间">{{ orderData.create_time }}</el-descriptions-item>
+              <el-descriptions-item label="支付方式">{{ orderData.payment_method }}</el-descriptions-item>
               <el-descriptions-item label="订单状态">
-                <el-tag :type="getStatusType(orderData.status)" size="small">{{ orderData.statusText }}</el-tag>
+                <el-tag :type="getStatusType(orderData.status)" size="small">{{ orderData.status_text }}</el-tag>
               </el-descriptions-item>
             </el-descriptions>
           </el-card>
@@ -126,7 +126,7 @@
         <div class="price-detail">
           <div class="price-row">
             <span class="price-label">商品总价：</span>
-            <span class="price-value">¥{{ orderData.totalAmount.toLocaleString() }}</span>
+            <span class="price-value">¥{{ orderData.amount.toLocaleString() }}</span>
           </div>
           <div class="price-row">
             <span class="price-label">运费：</span>
@@ -139,7 +139,7 @@
           <el-divider />
           <div class="price-row total">
             <span class="price-label">实付金额：</span>
-            <span class="price-total">¥{{ orderData.paidAmount.toLocaleString() }}</span>
+            <span class="price-total">¥{{ orderData.paid_amount.toLocaleString() }}</span>
             <el-tag v-if="orderData.paid" type="success" size="small" class="paid-tag">已支付</el-tag>
           </div>
         </div>
@@ -153,7 +153,7 @@
         <div v-if="orderData.logistics" class="logistics-info">
           <el-descriptions :column="2" border>
             <el-descriptions-item label="物流公司">{{ orderData.logistics.company }}</el-descriptions-item>
-            <el-descriptions-item label="快递单号">{{ orderData.logistics.trackingNo }}</el-descriptions-item>
+            <el-descriptions-item label="快递单号">{{ orderData.logistics.tracking_no }}</el-descriptions-item>
           </el-descriptions>
         </div>
         <div v-else class="logistics-form">
@@ -207,19 +207,18 @@ const searchOrderNo = ref('')
 
 const orderData = reactive({
   id: '',
-  orderNo: '',
+  order_no: '',
   status: -1,
-  statusText: '',
-  createTime: '',
-  payTime: '',
-  deliveryTime: '',
-  completeTime: '',
-  paymentMethod: '',
-  totalAmount: 0,
+  status_text: '',
+  create_time: '',
+  pay_time: '',
+  delivery_time: '',
+  complete_time: '',
+  payment_method: '',
+  amount: 0,
   freight: 0,
   coupon: 0,
-  paidAmount: 0,
-  paid: false,
+  paid_amount: 0,
   recipient: null,
   products: [],
   logistics: null,
@@ -236,17 +235,17 @@ const maskPhone = (phone) => phone ? phone.slice(0, 3) + '****' + phone.slice(7)
 const statusSteps = computed(() => {
   if (orderData.status === 4) {
     return [
-      { label: '提交订单', time: orderData.createTime, active: false, passed: true },
-      { label: '已付款', time: orderData.payTime, active: false, passed: true },
+      { label: '提交订单', time: orderData.create_time, active: false, passed: true },
+      { label: '已付款', time: orderData.pay_time, active: false, passed: true },
       { label: '已退款', time: orderData.logs[orderData.logs.length - 1]?.time || '', active: true, passed: false }
     ]
   }
   const steps = [
-    { label: '提交订单', time: orderData.createTime, active: false, passed: false },
-    { label: '已付款', time: orderData.payTime, active: false, passed: false },
-    { label: '待发货', time: orderData.deliveryTime, active: false, passed: false },
-    { label: '已发货', time: orderData.deliveryTime, active: false, passed: false },
-    { label: '已完成', time: orderData.completeTime, active: false, passed: false }
+    { label: '提交订单', time: orderData.create_time, active: false, passed: false },
+    { label: '已付款', time: orderData.pay_time, active: false, passed: false },
+    { label: '待发货', time: orderData.delivery_time, active: false, passed: false },
+    { label: '已发货', time: orderData.delivery_time, active: false, passed: false },
+    { label: '已完成', time: orderData.complete_time, active: false, passed: false }
   ]
   // status 0→passed: step0; active: step1 (待付款状态下)
   // status 1→passed: step0,step1; active: step2
@@ -267,7 +266,7 @@ const loadDetail = async (orderNo) => {
       Object.assign(orderData, res.data)
       hasOrderNo.value = true
     } else {
-      Object.assign(orderData, { id: '', orderNo: '', status: -1 })
+      Object.assign(orderData, { id: '', order_no: '', status: -1 })
       hasOrderNo.value = false
     }
   } catch {
@@ -298,7 +297,7 @@ const confirmDelivery = async () => {
     })
     await api.deliveryOrder(orderData.id)
     ElMessage.success('发货成功')
-    loadDetail(orderData.orderNo)
+    loadDetail(orderData.order_no)
   } catch (e) {
     if (e !== 'cancel') ElMessage.error('发货失败')
   }
@@ -315,8 +314,8 @@ onMounted(() => {
   }
   const stateData = history.state?.orderData
   if (stateData?.orderNo) {
-    searchOrderNo.value = stateData.orderNo
-    loadDetail(stateData.orderNo)
+    searchOrderNo.value = stateData.order_no
+    loadDetail(stateData.order_no)
   }
 })
 </script>

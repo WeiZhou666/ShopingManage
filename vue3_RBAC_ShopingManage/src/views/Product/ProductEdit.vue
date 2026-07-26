@@ -94,7 +94,7 @@
             <span class="unit-text">元</span>
           </el-form-item>
           <el-form-item label="划线价">
-            <el-input-number v-model="form.originalPrice" :min="0" :step="0.01" controls-position="right"
+            <el-input-number v-model="form.original_price" :min="0" :step="0.01" controls-position="right"
               style="width: 180px" />
             <span class="unit-text">元</span>
             <span class="hint-text">（选填，不填则不显示划线价）</span>
@@ -141,7 +141,7 @@ const form = reactive({
   name: '',
   category: '',
   price: undefined,
-  originalPrice: undefined,
+  original_price: undefined,
   stock: undefined,
   status: 1,
   description: '',
@@ -165,7 +165,7 @@ const fillForm = (data) => {
   form.name = data.name || ''
   form.category = data.category || ''
   form.price = data.price
-  form.originalPrice = data.originalPrice
+  form.original_price = data.original_price
   form.stock = data.stock
   form.status = data.status !== undefined ? data.status : 1
   form.description = data.description || ''

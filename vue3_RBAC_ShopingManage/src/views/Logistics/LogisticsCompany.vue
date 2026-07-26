@@ -54,7 +54,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="150" />
+        <el-table-column prop="create_time" label="创建时间" width="150" />
         <el-table-column fixed="right" label="操作" width="200">
           <template #default="{ row }">
             <el-button v-permission="'logistics:edit'" link type="primary" size="small" @click="handleEdit(row)">

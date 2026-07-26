@@ -32,7 +32,8 @@
 
       <el-tab-pane label="修改密码" name="password">
         <el-card>
-          <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="120px" class="settings-form">
+          <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="120px"
+            class="settings-form">
             <el-alert title="密码要求" type="info" :closable="false" show-icon class="password-tip">
               <template #default>
                 <ul class="password-requirements">
@@ -84,6 +85,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { updatePassword } from '@/api/api'
 import { staffList, roleMap } from '@/api/mockData/staff'
 
 const userStore = useUserStore()
@@ -200,7 +202,10 @@ const handleSavePassword = async () => {
   }
   passwordLoading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await updatePassword({
+      oldPassword: passwordForm.oldPassword,
+      newPassword: passwordForm.newPassword
+    })
     ElMessage.success('密码修改成功，请重新登录')
     userStore.logout()
     window.location.href = '/login'

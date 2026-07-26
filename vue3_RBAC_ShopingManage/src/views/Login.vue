@@ -31,6 +31,24 @@
         <p>提示：账号 admin / operator1 / order1 等，密码 123456</p>
       </div>
     </div>
+
+    <!-- 首次登录强制修改密码弹窗 -->
+    <el-dialog v-model="showChangePassword" title="首次登录请修改密码" width="420px"
+      :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false" align-center>
+      <el-alert title="为了账号安全，首次登录必须修改密码后才能使用系统。" type="warning" :closable="false" show-icon
+        style="margin-bottom: 20px" />
+      <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="100px">
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="pwdForm.newPassword" type="password" placeholder="请输入新密码" show-password />
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input v-model="pwdForm.confirmPassword" type="password" placeholder="请再次输入新密码" show-password />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" :loading="pwdLoading" v-debounce:500="handleChangePassword">确认修改</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -39,6 +57,7 @@ import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user.js'
+import { updatePassword } from '@/api/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -64,6 +83,58 @@ const loginRules = {
   ]
 }
 
+// 首次登录强制改密码
+const showChangePassword = ref(false)
+const pwdLoading = ref(false)
+const pwdFormRef = ref(null)
+const pwdForm = reactive({
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const validateConfirmPassword = (rule, value, callback) => {
+  if (value !== pwdForm.newPassword) {
+    callback(new Error('两次输入的密码不一致'))
+  } else {
+    callback()
+  }
+}
+
+const pwdRules = {
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度为 6-20 个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { validator: validateConfirmPassword, trigger: 'blur' }
+  ]
+}
+
+const handleChangePassword = async () => {
+  if (!pwdFormRef.value) return
+  try {
+    await pwdFormRef.value.validate()
+  } catch {
+    return
+  }
+  pwdLoading.value = true
+  try {
+    await updatePassword({
+      oldPassword: loginForm.password,
+      newPassword: pwdForm.newPassword
+    })
+    ElMessage.success('密码修改成功，即将进入系统')
+    showChangePassword.value = false
+    const redirect = route.query.redirect || '/'
+    router.push(redirect)
+  } catch {
+    ElMessage.error('密码修改失败')
+  } finally {
+    pwdLoading.value = false
+  }
+}
+
 const handleLogin = async () => {
   if (!loginFormRef.value) return
 
@@ -74,9 +145,14 @@ const handleLogin = async () => {
     try {
       const res = await userStore.login(loginForm)
       if (res.success) {
-        ElMessage.success('登录成功')
-        const redirect = route.query.redirect || '/'
-        router.push(redirect)
+        // 首次登录：弹窗强制改密码，不跳转
+        if (res.first_login === 1) {
+          showChangePassword.value = true
+        } else {
+          ElMessage.success('登录成功')
+          const redirect = route.query.redirect || '/'
+          router.push(redirect)
+        }
       } else {
         ElMessage.error(res.message)
       }

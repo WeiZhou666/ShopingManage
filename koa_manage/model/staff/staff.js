@@ -25,7 +25,8 @@ const staff = sequelize.define('staff', {
   },
   password: {
     type: Sequelize.STRING(255),
-    allowNull: false
+    allowNull: false,
+    field: 'password'
   },
   phone: {
     type: Sequelize.STRING(11),
@@ -46,6 +47,12 @@ const staff = sequelize.define('staff', {
     type: Sequelize.DATE,
     allowNull: true,
     field: 'last_login'
+  },
+  first_login: {
+    type: Sequelize.TINYINT,
+    allowNull: false,
+    defaultValue: 1,
+    field: 'first_login'
   },
   create_time: {
     type: Sequelize.DATE,

@@ -71,10 +71,10 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column prop="totalQuantity" label="发放总量" width="100" />
-        <el-table-column prop="receivedQuantity" label="已领取" width="100" />
-        <el-table-column prop="usedQuantity" label="已使用" width="100" />
-        <el-table-column prop="validPeriod" label="有效期" width="200" />
+        <el-table-column prop="total_quantity" label="发放总量" width="100" />
+        <el-table-column prop="received_quantity" label="已领取" width="100" />
+        <el-table-column prop="used_quantity" label="已使用" width="100" />
+        <el-table-column prop="valid_period" label="有效期" width="200" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
@@ -129,7 +129,7 @@
           <span style="margin-left: 10px">{{ form.type === 'full_reduction' ? '元' : '' }}</span>
         </el-form-item>
         <el-form-item label="发放总量">
-          <el-input v-model.number="form.totalQuantity" placeholder="本次活动发放多少张" style="width: 200px" />
+          <el-input v-model.number="form.total_quantity" placeholder="本次活动发放多少张" style="width: 200px" />
           <span style="margin-left: 10px">张</span>
         </el-form-item>
         <el-form-item label="有效期">
@@ -172,7 +172,7 @@ const form = reactive({
   type: 'full_reduction',
   threshold: 0,
   discount: 0,
-  totalQuantity: 0,
+  total_quantity: 0,
   dateRange: []
 })
 
@@ -240,7 +240,7 @@ const handleAdd = () => {
   form.type = 'full_reduction'
   form.threshold = 0
   form.discount = 0
-  form.totalQuantity = 0
+  form.total_quantity = 0
   form.dateRange = []
   dialogVisible.value = true
 }
@@ -252,8 +252,8 @@ const handleEdit = (row) => {
   form.type = row.type
   form.threshold = row.threshold
   form.discount = row.discount
-  form.totalQuantity = row.totalQuantity
-  const dates = row.validPeriod.split(' ~ ')
+  form.total_quantity = row.total_quantity
+  const dates = row.valid_period.split(' ~ ')
   form.dateRange = dates.map(d => new Date(d))
   dialogVisible.value = true
 }
@@ -275,7 +275,7 @@ const handleSave = async () => {
     ElMessage.error('折扣比例必须在0-1之间')
     return
   }
-  if (form.totalQuantity <= 0) {
+  if (form.total_quantity <= 0) {
     ElMessage.error('请设置发放总量')
     return
   }

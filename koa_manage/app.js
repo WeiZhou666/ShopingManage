@@ -7,13 +7,19 @@ import serve from 'koa-static'// 引入静态文件中间件
 // import pool from './db/index.js'// 引入数据库连接池
 import logger from './util/log4js.js'// 引入日志模块
 import index from './routes/index.js'// 引入首页路由
+import home from './routes/home/home.js'// 引入首页数据路由
 import user from './routes/user/user.js'// 引入用户路由
 import userAddress from './routes/user/userAddress.js'// 引入收货地址路由
 import operationLog from './routes/user/operationLog.js'// 引入操作日志路由
 import staff from './routes/staff/staff.js'// 引入员工路由
+import order from './routes/order/order.js'// 引入订单路由
+import product from './routes/product/product.js'// 引入商品路由
+import logistics from './routes/logistics/logistics.js'// 引入物流路由
+import marketing from './routes/marketing/marketing.js'// 引入营销路由
 import { fileURLToPath } from 'url'// 引入文件路径模块
 import { dirname, join } from 'path'// 引入路径模块
 import sequelize from './config/db.js'// 引入数据库模块
+import auth from './middleware/auth.js'// 引入 JWT 认证中间件
 const __filename = fileURLToPath(import.meta.url)// 获取当前模块的文件路径
 const __dirname = dirname(__filename)// 获取当前模块的目录路径
 
@@ -48,15 +54,19 @@ app.use(async (ctx, next) => {
   logger.info(`${ctx.method} ${ctx.url} - ${ms}ms`)
 })
 
+// JWT 认证中间件（全局挂载，白名单路径除外）
+app.use(auth)
+
 // 路由中间件，用于处理路由请求
 app.use(index.routes(), index.allowedMethods())
+app.use(home.routes(), home.allowedMethods())
 app.use(user.routes(), user.allowedMethods())
 app.use(userAddress.routes(), userAddress.allowedMethods())
 app.use(operationLog.routes(), operationLog.allowedMethods())
 app.use(staff.routes(), staff.allowedMethods())
-
-app.listen(port, () => {
-  console.log(`🚀 Koa 服务已启动：http://localhost:${port}`)
-})
+app.use(order.routes(), order.allowedMethods())
+app.use(product.routes(), product.allowedMethods())
+app.use(logistics.routes(), logistics.allowedMethods())
+app.use(marketing.routes(), marketing.allowedMethods())
 
 export default app

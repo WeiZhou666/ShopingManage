@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { staffList } from '@/api/mockData/staff'
+import { login as loginApi, getUserInfo as getUserInfoApi } from '@/api/api'
 
 export interface UserInfo {
   id: number
@@ -22,18 +22,7 @@ export interface LoginResult {
   success: boolean
   message: string
   data: UserInfo | null
-}
-
-const DEFAULT_PASSWORD = '123456'
-
-const formatTime = (date: Date): string => {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  const h = String(date.getHours()).padStart(2, '0')
-  const min = String(date.getMinutes()).padStart(2, '0')
-  const s = String(date.getSeconds()).padStart(2, '0')
-  return `${y}-${m}-${d} ${h}:${min}:${s}`
+  first_login?: number
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -50,49 +39,28 @@ export const useUserStore = defineStore('user', () => {
     localStorage.setItem('token', newToken)
   }
 
-  const login = (loginData: LoginData): Promise<LoginResult> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const { username, password } = loginData
+  // 登录：调用后端 /staff/login 接口
+  const login = async (loginData: LoginData): Promise<LoginResult> => {
+    try {
+      const res = await loginApi({ username: loginData.username, password: loginData.password })
+      setToken(res.data.token)
+      setUserInfo(res.data.userInfo)
+      return { success: true, message: res.msg, data: res.data.userInfo, first_login: res.data.first_login }
+    } catch (err: any) {
+      return { success: false, message: err.msg || '登录失败', data: null }
+    }
+  }
 
-        // 第一步：查找员工
-        const staff = staffList.find(s => s.account === username)
-        if (!staff) {
-          resolve({ success: false, message: '账号不存在', data: null })
-          return
-        }
-
-        // 第二步：校验密码
-        if (password !== DEFAULT_PASSWORD) {
-          resolve({ success: false, message: '密码错误', data: null })
-          return
-        }
-
-        // 第三步：检查账号状态
-        if (staff.status === '0') {
-          resolve({ success: false, message: '该账号已被禁用，请联系管理员', data: null })
-          return
-        }
-
-        // 第四步：构建用户信息
-        const userInfo: UserInfo = {
-          id: staff.id,
-          username: staff.account,
-          name: staff.name,
-          avatar: '',
-          role: staff.role,
-          email: staff.account + '@example.com',
-          lastLoginTime: formatTime(new Date()),
-          loginLocation: '南昌'
-        }
-
-        // 第五步：保存登录状态
-        setToken('token_' + Date.now())
-        setUserInfo(userInfo)
-
-        resolve({ success: true, message: '登录成功', data: userInfo })
-      }, 500)
-    })
+  // 获取当前登录用户信息：用于页面刷新后恢复会话
+  const fetchUserInfo = async () => {
+    if (!token.value) return
+    try {
+      const res = await getUserInfoApi()
+      setUserInfo(res.data)
+    } catch (err) {
+      // token 无效，清除登录状态
+      logout()
+    }
   }
 
   // 退出登录
@@ -114,6 +82,7 @@ export const useUserStore = defineStore('user', () => {
     setUserInfo,
     setToken,
     login,
+    fetchUserInfo,
     logout,
     isLoggedIn
   }

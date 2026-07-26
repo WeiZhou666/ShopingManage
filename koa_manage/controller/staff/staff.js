@@ -1,7 +1,58 @@
 import staff from '../../model/staff/staff.js'
+import roles from '../../model/staff/roles.js'
 
 import { Op } from 'sequelize'
 import logger from '../../util/log4js.js'
+import bcrypt from 'bcryptjs'
+import { generateToken } from '../../util/jwt.js'
+
+// 格式化时间为 YYYY-MM-DD HH:mm:ss
+const formatTime = (date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  const s = String(date.getSeconds()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min}:${s}`
+}
+
+// 角色编码与 Element Plus 标签类型的映射
+const roleTypeMap = {
+  super_admin: 'danger',
+  operator: 'primary',
+  order_staff: 'success',
+  finance: 'warning',
+  customer_service: 'info'
+}
+
+// 获取角色列表
+// 返回 roles 表数据，并补充 value(=code) / label(=name) / type(标签类型) 字段供前端使用
+const getRoleList = async (ctx, next) => {
+  try {
+    const list = await roles.findAll({ order: [['id', 'ASC']] })
+    const data = list.map(r => ({
+      id: r.id,
+      code: r.code,
+      name: r.name,
+      value: r.code,
+      label: r.name,
+      type: roleTypeMap[r.code] || 'info'
+    }))
+    ctx.body = {
+      code: 200,
+      msg: '查询成功',
+      data
+    }
+  } catch (err) {
+    logger.error('数据库查询错误:', err)
+    ctx.body = {
+      code: 500,
+      msg: '查询失败: ' + err.message,
+      data: null
+    }
+  }
+}
 
 // 员工列表分页 + 筛选
 // 支持参数：pageNum, pageSize, keyword(匹配 工号/姓名/手机号), tags(1超级管理员/2运营管理员/3订单管理员/4财务/5客服), status(1正常/0禁用), startDate, endDate
@@ -101,7 +152,7 @@ const addStaff = async (ctx, next) => {
       name,
       account,
       phone,
-      password: password || '123456',
+      password: bcrypt.hashSync(password || '123456', bcrypt.genSaltSync(10)),
       role_id: Number(role_id),
       status: status || '1'
     })
@@ -205,7 +256,8 @@ const resetStaffPassword = async (ctx, next) => {
     const { id } = ctx.request.body
     const staffRecord = await staff.findByPk(Number(id))
     if (staffRecord) {
-      staffRecord.password = '123456'
+      staffRecord.password = bcrypt.hashSync('123456', bcrypt.genSaltSync(10))
+      staffRecord.first_login = 1
       await staffRecord.save()
       ctx.body = {
         code: 200,
@@ -276,7 +328,7 @@ const updateStaff = async (ctx, next) => {
     }
     if (name) staffRecord.name = name
     if (phone) staffRecord.phone = phone
-    if (password) staffRecord.password = password
+    if (password) staffRecord.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10))
     if (role_id !== undefined) staffRecord.role_id = Number(role_id)
     if (status !== undefined) staffRecord.status = status
     await staffRecord.save()
@@ -295,6 +347,139 @@ const updateStaff = async (ctx, next) => {
   }
 }
 
+// 登录
+// 接收 { username, password }，校验通过后签发 JWT，返回 { token, userInfo }
+const login = async (ctx, next) => {
+  try {
+    const { username, password } = ctx.request.body
+
+    // 第一步：按账号查找员工
+    const staffRecord = await staff.findOne({ where: { account: username } })
+    if (!staffRecord) {
+      ctx.body = { code: 400, msg: '账号不存在', data: null }
+      return
+    }
+
+    // 第二步：校验密码（bcrypt 比对）
+    const isMatch = bcrypt.compareSync(password, staffRecord.password)
+    if (!isMatch) {
+      ctx.body = { code: 400, msg: '密码错误', data: null }
+      return
+    }
+
+    // 第三步：检查账号状态
+    if (staffRecord.status !== '1') {
+      ctx.body = { code: 400, msg: '该账号已被禁用，请联系管理员', data: null }
+      return
+    }
+
+    // 第四步：查询角色编码
+    const roleRecord = await roles.findByPk(staffRecord.role_id)
+    const roleCode = roleRecord ? roleRecord.code : ''
+
+    // 第五步：更新最后登录时间
+    const now = new Date()
+    await staffRecord.update({ last_login: now })
+
+    // 第六步：构建用户信息
+    const userInfo = {
+      id: staffRecord.id,
+      username: staffRecord.account,
+      name: staffRecord.name,
+      avatar: '',
+      role: roleCode,
+      email: staffRecord.account + '@example.com',
+      lastLoginTime: formatTime(now),
+      loginLocation: '南昌'
+    }
+
+    // 第七步：签发 JWT token
+    const token = generateToken({
+      id: staffRecord.id,
+      account: staffRecord.account,
+      role: roleCode
+    })
+
+    ctx.body = {
+      code: 200,
+      msg: '登录成功',
+      data: { token, userInfo, first_login: staffRecord.first_login }
+    }
+  } catch (err) {
+    logger.error('登录错误:', err)
+    ctx.body = { code: 500, msg: '登录失败: ' + err.message, data: null }
+  }
+}
+
+// 获取当前登录用户信息
+// 从 ctx.state.user（中间件解析的 token）读取用户 id，查询最新信息
+const getUserInfo = async (ctx, next) => {
+  try {
+    const { id } = ctx.state.user
+    const staffRecord = await staff.findByPk(id, { attributes: { exclude: ['password'] } })
+    if (!staffRecord) {
+      ctx.body = { code: 404, msg: '用户不存在', data: null }
+      return
+    }
+
+    const roleRecord = await roles.findByPk(staffRecord.role_id)
+    const roleCode = roleRecord ? roleRecord.code : ''
+
+    const userInfo = {
+      id: staffRecord.id,
+      username: staffRecord.account,
+      name: staffRecord.name,
+      avatar: '',
+      role: roleCode,
+      email: staffRecord.account + '@example.com',
+      lastLoginTime: staffRecord.last_login ? formatTime(new Date(staffRecord.last_login)) : '',
+      loginLocation: '南昌'
+    }
+
+    ctx.body = {
+      code: 200,
+      msg: '查询成功',
+      data: userInfo
+    }
+  } catch (err) {
+    logger.error('获取用户信息错误:', err)
+    ctx.body = { code: 500, msg: '获取用户信息失败: ' + err.message, data: null }
+  }
+}
+
+// 修改密码
+// 接收 { oldPassword, newPassword }，校验旧密码后更新新密码（bcrypt 加密）
+const updatePassword = async (ctx, next) => {
+  try {
+    const { id } = ctx.state.user
+    const { oldPassword, newPassword } = ctx.request.body
+
+    const staffRecord = await staff.findByPk(id)
+    if (!staffRecord) {
+      ctx.body = { code: 404, msg: '用户不存在', data: null }
+      return
+    }
+
+    // 校验旧密码
+    const isMatch = bcrypt.compareSync(oldPassword, staffRecord.password)
+    if (!isMatch) {
+      ctx.body = { code: 400, msg: '旧密码错误', data: null }
+      return
+    }
+
+    // 更新新密码（bcrypt 加密）
+    const salt = bcrypt.genSaltSync(10)
+    staffRecord.password = bcrypt.hashSync(newPassword, salt)
+    staffRecord.first_login = 0
+    await staffRecord.save()
+
+    ctx.body = { code: 200, msg: '密码修改成功', data: null }
+  } catch (err) {
+    logger.error('修改密码错误:', err)
+    ctx.body = { code: 500, msg: '密码修改失败: ' + err.message, data: null }
+  }
+}
+
 export {
   getStaffList,
   getStaffDetail,
@@ -304,6 +489,9 @@ export {
   batchDeleteStaff,
   toggleStaffStatus,
   resetStaffPassword,
-  // getRoleList,
+  getRoleList,
+  login,
+  getUserInfo,
+  updatePassword,
   // staffList
 }

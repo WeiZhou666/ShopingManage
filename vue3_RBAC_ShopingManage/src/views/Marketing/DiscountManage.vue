@@ -41,23 +41,23 @@
     <div class="table">
       <el-table :data="tableData" style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="productName" label="商品名称" width="200" />
-        <el-table-column prop="originalPrice" label="原价" width="100">
+        <el-table-column prop="product_name" label="商品名称" width="200" />
+        <el-table-column prop="original_price" label="原价" width="100">
           <template #default="{ row }">
-            ¥{{ row.originalPrice.toFixed(2) }}
+            ¥{{ row.original_price.toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column prop="discountPrice" label="折扣价" width="100">
+        <el-table-column prop="discount_price" label="折扣价" width="100">
           <template #default="{ row }">
-            <span class="discount-price">¥{{ row.discountPrice.toFixed(2) }}</span>
+            <span class="discount-price">¥{{ row.discount_price.toFixed(2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="discountRate" label="折扣比例" width="100">
+        <el-table-column prop="discount_rate" label="折扣比例" width="100">
           <template #default="{ row }">
-            <el-tag type="success">{{ (row.discountRate * 10).toFixed(1) }}折</el-tag>
+            <el-tag type="success">{{ (row.discount_rate * 10).toFixed(1) }}折</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="activePeriod" label="活动时间" width="200" />
+        <el-table-column prop="active_period" label="活动时间" width="200" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
@@ -94,22 +94,22 @@
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑折扣活动' : '新增折扣活动'" width="500px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="商品名称">
-          <el-select v-model="form.productId" placeholder="请选择商品">
+          <el-select v-model="form.product_id" placeholder="请选择商品">
             <el-option v-for="item in productOptions" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="原价">
-          <el-input v-model.number="form.originalPrice" placeholder="商品日常售价" style="width: 200px" />
+          <el-input v-model.number="form.original_price" placeholder="商品日常售价" style="width: 200px" />
           <span style="margin-left: 10px">元</span>
         </el-form-item>
         <el-form-item label="折扣价">
-          <el-input v-model.number="form.discountPrice" placeholder="活动期间的售价" style="width: 200px" />
+          <el-input v-model.number="form.discount_price" placeholder="活动期间的售价" style="width: 200px" />
           <span style="margin-left: 10px">元</span>
         </el-form-item>
         <el-form-item label="折扣比例">
-          <el-slider v-model="form.discountRate" :min="0.1" :max="0.9" :step="0.05"
+          <el-slider v-model="form.discount_rate" :min="0.1" :max="0.9" :step="0.05"
             :format-tooltip="(val) => `${(val * 10).toFixed(1)}折`" />
-          <span style="margin-left: 10px">{{ (form.discountRate * 10).toFixed(1) }}折</span>
+          <span style="margin-left: 10px">{{ (form.discount_rate * 10).toFixed(1) }}折</span>
         </el-form-item>
         <el-form-item label="活动时间">
           <el-date-picker v-model="form.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
@@ -146,10 +146,10 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const form = reactive({
   id: '',
-  productId: '',
-  originalPrice: 0,
-  discountPrice: 0,
-  discountRate: 0.8,
+  product_id: '',
+  original_price: 0,
+  discount_price: 0,
+  discount_rate: 0.8,
   dateRange: []
 })
 
@@ -220,10 +220,10 @@ const handleReset = () => {
 const handleAdd = () => {
   isEdit.value = false
   form.id = ''
-  form.productId = ''
-  form.originalPrice = 0
-  form.discountPrice = 0
-  form.discountRate = 0.8
+  form.product_id = ''
+  form.original_price = 0
+  form.discount_price = 0
+  form.discount_rate = 0.8
   form.dateRange = []
   dialogVisible.value = true
 }
@@ -231,25 +231,25 @@ const handleAdd = () => {
 const handleEdit = (row) => {
   isEdit.value = true
   form.id = row.id
-  form.productId = row.productId
-  form.originalPrice = row.originalPrice
-  form.discountPrice = row.discountPrice
-  form.discountRate = row.discountRate
-  const dates = row.activePeriod.split(' ~ ')
+  form.product_id = row.product_id
+  form.original_price = row.original_price
+  form.discount_price = row.discount_price
+  form.discount_rate = row.discount_rate
+  const dates = row.active_period.split(' ~ ')
   form.dateRange = dates.map(d => new Date(d))
   dialogVisible.value = true
 }
 
 const handleSave = async () => {
-  if (!form.productId) {
+  if (!form.product_id) {
     ElMessage.error('请选择参与商品')
     return
   }
-  if (form.originalPrice <= 0) {
+  if (form.original_price <= 0) {
     ElMessage.error('请设置商品原价')
     return
   }
-  if (form.discountPrice <= 0 || form.discountPrice >= form.originalPrice) {
+  if (form.discount_price <= 0 || form.discount_price >= form.original_price) {
     ElMessage.error('折扣价必须小于原价')
     return
   }
@@ -260,7 +260,7 @@ const handleSave = async () => {
 
   const saveData = {
     ...form,
-    discountRate: form.discountPrice / form.originalPrice,
+    discount_rate: form.discount_price / form.original_price,
     startDate: form.dateRange[0].toISOString().split('T')[0],
     endDate: form.dateRange[1].toISOString().split('T')[0]
   }
@@ -282,7 +282,7 @@ const handleSave = async () => {
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除折扣活动 ${row.productName} 吗?`, '提示', {
+    await ElMessageBox.confirm(`确定要删除折扣活动 ${row.product_name} 吗?`, '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'

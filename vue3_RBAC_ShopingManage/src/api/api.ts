@@ -94,7 +94,7 @@ export const setDefaultAddress = (id: string | number) => {
   return request({
     url: '/api/userAddress/setDefaultAddress',
     method: 'put',
-    params: { id }
+    data: { id }
   })
 }
 
@@ -110,7 +110,7 @@ export const updateUser = (data: any) => {
   return request({
     url: '/api/user/updateUser',
     method: 'put',
-    params: data
+    data
   })
 }
 
@@ -126,7 +126,7 @@ export const batchDeleteUsers = (ids: any[]) => {
   return request({
     url: '/api/user/batchDeleteUsers',
     method: 'post',
-    params: { ids }
+    data: { ids }
   })
 }
 
@@ -134,7 +134,7 @@ export const updateUserStatus = (id: string | number, status: number) => {
   return request({
     url: '/api/user/updateUserStatus',
     method: 'put',
-    params: { id, status }
+    data: { id, status }
   })
 }
 
@@ -142,7 +142,7 @@ export const updateUserTags = (id: string | number, tags: number) => {
   return request({
     url: '/api/user/updateUserTags',
     method: 'put',
-    params: { id, tags }
+    data: { id, tags }
   })
 }
 
@@ -173,7 +173,7 @@ export const deliveryOrder = (id: string | number) => {
   return request({
     url: '/api/order/deliveryOrder',
     method: 'put',
-    params: { id }
+    data: { id }
   })
 }
 
@@ -181,7 +181,7 @@ export const closeOrder = (id: string | number) => {
   return request({
     url: '/api/order/closeOrder',
     method: 'put',
-    params: { id }
+    data: { id }
   })
 }
 
@@ -222,7 +222,7 @@ export const addProduct = (data: any) => {
   return request({
     url: '/api/product/addProduct',
     method: 'post',
-    params: data
+    data
   })
 }
 
@@ -230,7 +230,7 @@ export const updateProduct = (data: any) => {
   return request({
     url: '/api/product/updateProduct',
     method: 'put',
-    params: data
+    data
   })
 }
 
@@ -246,7 +246,7 @@ export const batchDeleteProducts = (ids: any[]) => {
   return request({
     url: '/api/product/batchDeleteProducts',
     method: 'post',
-    params: { ids }
+    data: { ids }
   })
 }
 
@@ -254,7 +254,7 @@ export const updateProductStatus = (id: string | number, status: number) => {
   return request({
     url: '/api/product/updateProductStatus',
     method: 'put',
-    params: { id, status }
+    data: { id, status }
   })
 }
 
@@ -271,7 +271,7 @@ export const addLogisticsCompany = (data: any) => {
   return request({
     url: '/api/logistics/addCompany',
     method: 'post',
-    params: data
+    data
   })
 }
 
@@ -279,7 +279,7 @@ export const updateLogisticsCompany = (data: any) => {
   return request({
     url: '/api/logistics/updateCompany',
     method: 'put',
-    params: data
+    data
   })
 }
 
@@ -287,7 +287,7 @@ export const updateLogisticsCompanyStatus = (id: string | number, status: number
   return request({
     url: '/api/logistics/updateCompanyStatus',
     method: 'put',
-    params: { id, status }
+    data: { id, status }
   })
 }
 
@@ -320,7 +320,7 @@ export const addCoupon = (data: any) => {
   return request({
     url: '/api/marketing/addCoupon',
     method: 'post',
-    params: data
+    data
   })
 }
 
@@ -328,7 +328,7 @@ export const updateCoupon = (data: any) => {
   return request({
     url: '/api/marketing/updateCoupon',
     method: 'put',
-    params: data
+    data
   })
 }
 
@@ -401,6 +401,30 @@ export const deleteDiscount = (id: string | number) => {
     url: '/api/marketing/deleteDiscount',
     method: 'delete',
     params: { id }
+  })
+}
+
+// Auth 相关接口（登录/用户信息/修改密码）
+export const login = (data: { username: string; password: string }) => {
+  return request({
+    url: '/api/staff/login',
+    method: 'post',
+    data
+  })
+}
+
+export const getUserInfo = () => {
+  return request({
+    url: '/api/staff/getUserInfo',
+    method: 'get'
+  })
+}
+
+export const updatePassword = (data: { oldPassword: string; newPassword: string }) => {
+  return request({
+    url: '/api/staff/updatePassword',
+    method: 'post',
+    data
   })
 }
 
@@ -478,6 +502,9 @@ export const getStaffRoleList = () => {
 
 // 向后兼容：保留默认导出
 export default {
+  login,
+  getUserInfo,
+  updatePassword,
   getTableData,
   getCountData,
   getChartData,

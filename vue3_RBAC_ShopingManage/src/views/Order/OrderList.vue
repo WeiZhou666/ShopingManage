@@ -42,27 +42,27 @@
     <!-- 订单列表 -->
     <div class="table">
       <el-table :data="tableData" style="width: 100%" v-loading="loading">
-        <el-table-column prop="orderNo" label="订单编号" width="160" />
+        <el-table-column prop="order_no" label="订单编号" width="160" />
         <el-table-column label="用户信息" width="150">
           <template #default="{ row }">
             <div class="user-info">
-              <span>{{ row.userName }}</span>
-              <span class="user-phone">{{ maskPhone(row.userPhone) }}</span>
+              <span>{{ row.user_name }}</span>
+              <span class="user-phone">{{ maskPhone(row.user_phone) }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column label="商品信息" width="180">
           <template #default="{ row }">
             <div class="product-info">
-              <span>{{ row.productName }}</span>
-              <span class="product-count">x{{ row.productCount }}</span>
+              <span>{{ row.product_name }}</span>
+              <span class="product-count">x{{ row.product_count }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column prop="amount" label="订单金额" width="110">
           <template #default="{ row }">¥{{ row.amount.toLocaleString() }}</template>
         </el-table-column>
-        <el-table-column prop="createTime" label="下单时间" width="170" />
+        <el-table-column prop="create_time" label="下单时间" width="170" />
         <el-table-column prop="status" label="订单状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">
@@ -206,7 +206,7 @@ const handleReset = () => {
 // 查看详情
 const handleView = (row) => {
   router.push({
-    path: `/order/orderdetail/${row.orderNo}`,
+    path: `/order/orderdetail/${row.order_no}`,
     state: { orderData: row }
   })
 }
@@ -214,7 +214,7 @@ const handleView = (row) => {
 // 发货
 const handleDelivery = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要为订单 ${row.orderNo} 发货吗？`, '确认发货', {
+    await ElMessageBox.confirm(`确定要为订单 ${row.order_no} 发货吗？`, '确认发货', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'info'
@@ -232,7 +232,7 @@ const handleDelivery = async (row) => {
 // 关闭订单
 const handleClose = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要关闭订单 ${row.orderNo} 吗？`, '确认关闭', {
+    await ElMessageBox.confirm(`确定要关闭订单 ${row.order_no} 吗？`, '确认关闭', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'

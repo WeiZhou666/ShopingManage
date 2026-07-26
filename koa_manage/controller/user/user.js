@@ -280,14 +280,80 @@ const updateUserTags = async (ctx) => {
   }
 }
 
+//编辑用户（更新昵称/手机号/标签/状态等）
+const updateUser = async (ctx) => {
+  try {
+    const { id, nickname, phone, tags, status, total_consumption, order_count } = ctx.request.body
+    if (!id) {
+      ctx.body = { code: 400, msg: 'id不能为空', data: null }
+      return
+    }
+    const userRecord = await user.findByPk(id)
+    if (!userRecord) {
+      ctx.body = { code: 404, msg: '未找到该用户', data: null }
+      return
+    }
+    if (nickname !== undefined) userRecord.nickname = nickname
+    if (phone !== undefined) userRecord.phone = phone
+    if (tags !== undefined) userRecord.tags = Number(tags)
+    if (status !== undefined) userRecord.status = Number(status)
+    if (total_consumption !== undefined) userRecord.total_consumption = Number(total_consumption)
+    if (order_count !== undefined) userRecord.order_count = Number(order_count)
+    await userRecord.save()
+    ctx.body = {
+      code: 200,
+      msg: '更新成功',
+      data: userRecord
+    }
+  } catch (err) {
+    logger.error('更新用户失败:', err)
+    ctx.body = {
+      code: 500,
+      msg: '更新失败: ' + err.message,
+      data: null
+    }
+  }
+}
+
+//获取用户角色列表（静态字典数据，无对应数据表）
+const getRoleList = async (ctx) => {
+  ctx.body = {
+    code: 200,
+    msg: '查询成功',
+    data: [
+      { id: 1, name: '管理员', code: 'admin', description: '拥有所有权限' },
+      { id: 2, name: '普通用户', code: 'user', description: '基础访问权限' },
+      { id: 3, name: 'VIP用户', code: 'vip', description: '高级功能权限' },
+      { id: 4, name: '编辑', code: 'editor', description: '内容编辑权限' }
+    ]
+  }
+}
+
+//获取部门列表（静态字典数据，无对应数据表）
+const getDepartmentList = async (ctx) => {
+  ctx.body = {
+    code: 200,
+    msg: '查询成功',
+    data: [
+      { id: 1, name: '技术部', code: 'tech' },
+      { id: 2, name: '市场部', code: 'market' },
+      { id: 3, name: '运营部', code: 'operation' },
+      { id: 4, name: '财务部', code: 'finance' },
+      { id: 5, name: '人事部', code: 'hr' }
+    ]
+  }
+}
+
 
 export {
   getUserList,
   getUserDetail,
   addUser,
-  // updateUser,
+  updateUser,
   deleteUser,
   batchDeleteUsers,
   updateUserStatus,
   updateUserTags,
+  getRoleList,
+  getDepartmentList,
 }

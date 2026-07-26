@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `staff` (
   `role_id` INT NOT NULL,
   `status` VARCHAR(1) NOT NULL DEFAULT '1',
   `last_login` DATETIME NULL,
+  `first_login` TINYINT NOT NULL DEFAULT 1,
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `employee_no` (`employee_no`),
@@ -34,15 +35,15 @@ CREATE TABLE IF NOT EXISTS `staff` (
 -- 清空旧数据（首次执行可省略）
 -- TRUNCATE TABLE staff;
 
-INSERT INTO staff (id, employee_no, name, account, password, phone, role_id, status, last_login, create_time) VALUES
-(1, 'EMP001', '管理员',   'admin',    '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139001', 1, '1', '2026-07-18 08:30:00', '2024-01-01 09:00:00'),
-(2, 'EMP002', '张运营',   'zhangyunying', '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139002', 2, '1', '2026-07-17 17:45:00', '2024-01-10 09:00:00'),
-(3, 'EMP003', '李订单',   'lidingdan',    '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139003', 3, '1', '2026-07-18 09:15:00', '2024-02-01 09:00:00'),
-(4, 'EMP004', '王财务',   'wangcaiwu',    '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139004', 4, '1', '2026-07-16 16:20:00', '2024-02-15 09:00:00'),
-(5, 'EMP005', '赵客服',   'zhaokefu',     '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139005', 5, '1', '2026-07-18 10:00:00', '2024-03-01 09:00:00'),
-(6, 'EMP006', '钱客服',   'qiankefu',     '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139006', 5, '1', '2026-07-17 14:30:00', '2024-03-10 09:00:00'),
-(7, 'EMP007', '孙运营',   'sunyunying',   '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139007', 2, '0', NULL,                 '2024-04-01 09:00:00'),
-(8, 'EMP008', '周订单',   'zhoudingdan',  '$2b$10$QxBNA6b9xc7pSvz4CjfBT.tjaIrpnvnX.NBFhUf2TeuOaJ75LnyIK', '13900139008', 3, '1', '2026-07-15 11:10:00', '2024-04-10 09:00:00');
+INSERT INTO staff (id, employee_no, name, account, password, phone, role_id, status, last_login, first_login, create_time) VALUES
+(1, 'EMP001', '管理员',   'admin',        '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139001', 1, '1', '2026-07-18 08:30:00', 0, '2024-01-01 09:00:00'),
+(2, 'EMP002', '张运营',   'zhangyunying', '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139002', 2, '1', '2026-07-17 17:45:00', 0, '2024-01-10 09:00:00'),
+(3, 'EMP003', '李订单',   'lidingdan',    '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139003', 3, '1', '2026-07-18 09:15:00', 0, '2024-02-01 09:00:00'),
+(4, 'EMP004', '王财务',   'wangcaiwu',    '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139004', 4, '1', '2026-07-16 16:20:00', 0, '2024-02-15 09:00:00'),
+(5, 'EMP005', '赵客服',   'zhaokefu',     '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139005', 5, '1', '2026-07-18 10:00:00', 0, '2024-03-01 09:00:00'),
+(6, 'EMP006', '钱客服',   'qiankefu',     '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139006', 5, '1', '2026-07-17 14:30:00', 0, '2024-03-10 09:00:00'),
+(7, 'EMP007', '孙运营',   'sunyunying',   '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139007', 2, '0', NULL,                 0, '2024-04-01 09:00:00'),
+(8, 'EMP008', '周订单',   'zhoudingdan',  '$2b$10$a1QrCK3BMRpJJ8EbanrX5e1hYSNg1v0arwKHEhUqW68IVD3vyfa1i', '13900139008', 3, '1', '2026-07-15 11:10:00', 0, '2024-04-10 09:00:00');
 
 -- 验证
 SELECT id, employee_no, name, account, role_id, status FROM staff;

@@ -89,4 +89,5 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   logger('Listening on ' + bind);
+  console.log(`🚀 Koa 服务已启动：http://localhost:${addr.port}`)
 }

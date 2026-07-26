@@ -7,13 +7,24 @@ import {
   deleteStaff,
   batchDeleteStaff,
   resetStaffPassword,
-  toggleStaffStatus
+  toggleStaffStatus,
+  getRoleList,
+  login,
+  getUserInfo,
+  updatePassword
 } from '../../controller/staff/staff.js'
 const router = new Router()
 
 // 员工路由
 // 定义路由前缀为 /staff
 router.prefix('/staff')
+
+// 登录接口（不需要认证，已在 auth 中间件白名单中放行）
+router.post('/login', login)
+// 获取当前登录用户信息
+router.get('/getUserInfo', getUserInfo)
+// 修改密码
+router.post('/updatePassword', updatePassword)
 
 router.get('/getStaffList', getStaffList)
 router.get('/getStaffDetail', getStaffDetail)
@@ -23,6 +34,7 @@ router.post('/deleteStaff', deleteStaff)
 router.post('/batchDeleteStaff', batchDeleteStaff)
 router.post('/resetStaffPassword', resetStaffPassword)
 router.post('/toggleStaffStatus', toggleStaffStatus)
+router.get('/getRoleList', getRoleList)
 
 
 
