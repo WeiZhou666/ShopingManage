@@ -20,7 +20,7 @@
                 <Phone />
               </el-icon>
               <span class="info-label">手机号</span>
-              <span class="info-value">{{ staffInfo?.phone || '-' }}</span>
+              <span class="info-value">{{ userStore.userInfo?.phone || '-' }}</span>
             </div>
             <div class="info-item">
               <el-icon>
@@ -62,20 +62,20 @@
           </template>
 
           <el-descriptions :column="2" border>
-            <el-descriptions-item label="员工工号">{{ staffInfo?.employeeNo || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="员工工号">{{ userStore.userInfo?.employeeNo || '-' }}</el-descriptions-item>
             <el-descriptions-item label="姓名">{{ userStore.userInfo?.name || '-' }}</el-descriptions-item>
             <el-descriptions-item label="登录账号">{{ userStore.userInfo?.username || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="手机号">{{ staffInfo?.phone || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="手机号">{{ userStore.userInfo?.phone || '-' }}</el-descriptions-item>
             <el-descriptions-item label="邮箱">{{ userStore.userInfo?.email || '-' }}</el-descriptions-item>
             <el-descriptions-item label="角色">
               <el-tag :type="roleTagType" size="small">{{ roleName }}</el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="账号状态">
-              <el-tag :type="staffInfo?.status === '1' ? 'success' : 'danger'" size="small">
-                {{ staffInfo?.status === '1' ? '正常' : '已禁用' }}
+              <el-tag :type="userStore.userInfo?.status === '1' ? 'success' : 'danger'" size="small">
+                {{ userStore.userInfo?.status === '1' ? '正常' : '已禁用' }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="入职时间">{{ staffInfo?.createTime || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="入职时间">{{ userStore.userInfo?.createTime || '-' }}</el-descriptions-item>
             <el-descriptions-item label="最后登录">{{ userStore.userInfo?.lastLoginTime || '-' }}</el-descriptions-item>
             <el-descriptions-item label="登录地点">{{ userStore.userInfo?.loginLocation || '-' }}</el-descriptions-item>
           </el-descriptions>
@@ -143,13 +143,10 @@ import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Phone, Message, Clock, Location, Edit } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import { staffList, roleMap } from '@/api/mockData/staff'
+import { updateProfile } from '@/api/api'
+import { roleMap } from '@/api/mockData/staff'
 
 const userStore = useUserStore()
-
-const staffInfo = computed(() => {
-  return staffList.find(s => s.account === userStore.userInfo?.username) || null
-})
 
 const roleName = computed(() => {
   const role = userStore.userInfo?.role
@@ -189,7 +186,7 @@ const editRules = {
 
 const handleEdit = () => {
   editForm.name = userStore.userInfo?.name || ''
-  editForm.phone = staffInfo.value?.phone || ''
+  editForm.phone = userStore.userInfo?.phone || ''
   editForm.email = userStore.userInfo?.email || ''
   editDialogVisible.value = true
 }
@@ -203,12 +200,12 @@ const handleSaveProfile = async () => {
   }
   editLoading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-    userStore.setUserInfo({
-      ...userStore.userInfo,
+    const res = await updateProfile({
       name: editForm.name,
+      phone: editForm.phone,
       email: editForm.email
     })
+    userStore.setUserInfo(res.data)
     ElMessage.success('资料更新成功')
     editDialogVisible.value = false
   } catch {

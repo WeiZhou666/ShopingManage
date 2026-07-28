@@ -36,12 +36,6 @@
               </el-icon>
               个人中心
             </el-dropdown-item>
-            <el-dropdown-item command="settings">
-              <el-icon>
-                <Setting />
-              </el-icon>
-              账号设置
-            </el-dropdown-item>
             <el-dropdown-divider />
             <el-dropdown-item command="logout" divided>
               <el-icon>
@@ -60,7 +54,7 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Menu, User, Setting, SwitchButton } from '@element-plus/icons-vue'
+import { Menu, User, SwitchButton } from '@element-plus/icons-vue'
 import { useAllDateStore } from '@/stores/index.js'
 import { useUserStore } from '@/stores/user.js'
 
@@ -91,9 +85,6 @@ const handleCommand = (command) => {
   switch (command) {
     case 'profile':
       router.push('/profile')
-      break
-    case 'settings':
-      router.push('/settings')
       break
     case 'logout':
       handleLogout()

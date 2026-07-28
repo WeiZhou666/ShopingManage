@@ -11,7 +11,8 @@ import {
   getRoleList,
   login,
   getUserInfo,
-  updatePassword
+  updatePassword,
+  updateProfile
 } from '../../controller/staff/staff.js'
 const router = new Router()
 
@@ -25,6 +26,8 @@ router.post('/login', login)
 router.get('/getUserInfo', getUserInfo)
 // 修改密码
 router.post('/updatePassword', updatePassword)
+// 修改个人资料
+router.post('/updateProfile', updateProfile)
 
 router.get('/getStaffList', getStaffList)
 router.get('/getStaffDetail', getStaffDetail)

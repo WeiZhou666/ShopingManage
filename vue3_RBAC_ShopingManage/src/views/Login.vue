@@ -33,8 +33,8 @@
     </div>
 
     <!-- 首次登录强制修改密码弹窗 -->
-    <el-dialog v-model="showChangePassword" title="首次登录请修改密码" width="420px"
-      :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false" align-center>
+    <el-dialog v-model="showChangePassword" title="首次登录请修改密码" width="420px" :close-on-click-modal="false"
+      :close-on-press-escape="false" :show-close="false" align-center>
       <el-alert title="为了账号安全，首次登录必须修改密码后才能使用系统。" type="warning" :closable="false" show-icon
         style="margin-bottom: 20px" />
       <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="100px">

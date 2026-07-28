@@ -32,12 +32,6 @@ const router = createRouter({
           component: () => import('@/views/Profile.vue')
         },
         {
-          path: '/settings',
-          name: 'settings',
-          meta: { title: '账号设置', icon: 'Setting' },
-          component: () => import('@/views/AccountSettings.vue')
-        },
-        {
           path: '/user',
           name: 'user',
           redirect: '/user/userlist',

@@ -388,7 +388,11 @@ const login = async (ctx, next) => {
       name: staffRecord.name,
       avatar: '',
       role: roleCode,
-      email: staffRecord.account + '@example.com',
+      email: staffRecord.email || staffRecord.account + '@example.com',
+      phone: staffRecord.phone,
+      employeeNo: staffRecord.employee_no,
+      status: staffRecord.status,
+      createTime: staffRecord.create_time ? formatTime(new Date(staffRecord.create_time)) : '',
       lastLoginTime: formatTime(now),
       loginLocation: '南昌'
     }
@@ -431,7 +435,11 @@ const getUserInfo = async (ctx, next) => {
       name: staffRecord.name,
       avatar: '',
       role: roleCode,
-      email: staffRecord.account + '@example.com',
+      email: staffRecord.email || staffRecord.account + '@example.com',
+      phone: staffRecord.phone,
+      employeeNo: staffRecord.employee_no,
+      status: staffRecord.status,
+      createTime: staffRecord.create_time ? formatTime(new Date(staffRecord.create_time)) : '',
       lastLoginTime: staffRecord.last_login ? formatTime(new Date(staffRecord.last_login)) : '',
       loginLocation: '南昌'
     }
@@ -480,6 +488,49 @@ const updatePassword = async (ctx, next) => {
   }
 }
 
+// 修改个人资料
+// 接收 { name, phone, email }，更新当前登录用户的基本信息
+const updateProfile = async (ctx, next) => {
+  try {
+    const { id } = ctx.state.user
+    const { name, phone, email } = ctx.request.body
+
+    const staffRecord = await staff.findByPk(id)
+    if (!staffRecord) {
+      ctx.body = { code: 404, msg: '用户不存在', data: null }
+      return
+    }
+
+    staffRecord.name = name
+    staffRecord.phone = phone
+    staffRecord.email = email
+    await staffRecord.save()
+
+    // 返回更新后的用户信息（不含密码）
+    const roleRecord = await roles.findByPk(staffRecord.role_id)
+    const roleCode = roleRecord ? roleRecord.code : ''
+    const userInfo = {
+      id: staffRecord.id,
+      username: staffRecord.account,
+      name: staffRecord.name,
+      avatar: '',
+      role: roleCode,
+      email: staffRecord.email || staffRecord.account + '@example.com',
+      phone: staffRecord.phone,
+      employeeNo: staffRecord.employee_no,
+      status: staffRecord.status,
+      createTime: staffRecord.create_time ? formatTime(new Date(staffRecord.create_time)) : '',
+      lastLoginTime: staffRecord.last_login ? formatTime(new Date(staffRecord.last_login)) : '',
+      loginLocation: '南昌'
+    }
+
+    ctx.body = { code: 200, msg: '资料更新成功', data: userInfo }
+  } catch (err) {
+    logger.error('修改个人资料错误:', err)
+    ctx.body = { code: 500, msg: '资料更新失败: ' + err.message, data: null }
+  }
+}
+
 export {
   getStaffList,
   getStaffDetail,
@@ -493,5 +544,6 @@ export {
   login,
   getUserInfo,
   updatePassword,
+  updateProfile,
   // staffList
 }

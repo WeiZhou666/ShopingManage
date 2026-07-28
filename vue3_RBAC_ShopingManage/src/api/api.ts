@@ -428,6 +428,14 @@ export const updatePassword = (data: { oldPassword: string; newPassword: string 
   })
 }
 
+export const updateProfile = (data: { name: string; phone: string; email: string }) => {
+  return request({
+    url: '/api/staff/updateProfile',
+    method: 'post',
+    data
+  })
+}
+
 // Staff 相关接口
 export const getStaffList = (params = {}) => {
   return request({
@@ -505,6 +513,7 @@ export default {
   login,
   getUserInfo,
   updatePassword,
+  updateProfile,
   getTableData,
   getCountData,
   getChartData,

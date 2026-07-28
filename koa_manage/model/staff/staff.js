@@ -32,6 +32,11 @@ const staff = sequelize.define('staff', {
     type: Sequelize.STRING(11),
     allowNull: false
   },
+  email: {
+    type: Sequelize.STRING(50),
+    allowNull: true,
+    field: 'email'
+  },
   role_id: {
     type: Sequelize.INTEGER,
     allowNull: false,

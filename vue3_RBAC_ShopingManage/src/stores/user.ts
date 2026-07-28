@@ -9,6 +9,10 @@ export interface UserInfo {
   avatar: string
   role: string
   email: string
+  phone: string
+  employeeNo: string
+  status: string
+  createTime: string
   lastLoginTime: string
   loginLocation: string
 }
