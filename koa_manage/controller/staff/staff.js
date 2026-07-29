@@ -5,6 +5,7 @@ import { Op } from 'sequelize'
 import logger from '../../util/log4js.js'
 import bcrypt from 'bcryptjs'
 import { generateToken } from '../../util/jwt.js'
+import { checkLoginLimit, recordLoginFailure, clearLoginLimit, MAX_FAIL_COUNT } from '../../util/loginLimiter.js'
 
 // 格式化时间为 YYYY-MM-DD HH:mm:ss
 const formatTime = (date) => {
@@ -349,39 +350,69 @@ const updateStaff = async (ctx, next) => {
 
 // 登录
 // 接收 { username, password }，校验通过后签发 JWT，返回 { token, userInfo }
+// 集成登录失败次数限制：连续失败 5 次锁定 15 分钟
 const login = async (ctx, next) => {
   try {
     const { username, password } = ctx.request.body
 
-    // 第一步：按账号查找员工
+    // 第一步：检查账号是否被锁定（防止暴力破解）
+    const limitStatus = checkLoginLimit(username)
+    if (limitStatus.locked) {
+      ctx.body = {
+        code: 403,
+        msg: `账号已被锁定，请 ${limitStatus.remainMin} 分钟后再试`,
+        data: null
+      }
+      return
+    }
+
+    // 第二步：按账号查找员工
     const staffRecord = await staff.findOne({ where: { account: username } })
     if (!staffRecord) {
       ctx.body = { code: 400, msg: '账号不存在', data: null }
       return
     }
 
-    // 第二步：校验密码（bcrypt 比对）
+    // 第三步：校验密码（bcrypt 比对）
     const isMatch = bcrypt.compareSync(password, staffRecord.password)
     if (!isMatch) {
-      ctx.body = { code: 400, msg: '密码错误', data: null }
+      // 记录一次失败，返回剩余尝试次数
+      const failCount = recordLoginFailure(username)
+      const remainCount = MAX_FAIL_COUNT - failCount
+      if (remainCount <= 0) {
+        ctx.body = {
+          code: 403,
+          msg: `密码错误次数过多，账号已被锁定 15 分钟`,
+          data: null
+        }
+      } else {
+        ctx.body = {
+          code: 400,
+          msg: `密码错误，剩余尝试次数 ${remainCount} 次`,
+          data: null
+        }
+      }
       return
     }
 
-    // 第三步：检查账号状态
+    // 第四步：检查账号状态
     if (staffRecord.status !== '1') {
       ctx.body = { code: 400, msg: '该账号已被禁用，请联系管理员', data: null }
       return
     }
 
-    // 第四步：查询角色编码
+    // 第五步：查询角色编码
     const roleRecord = await roles.findByPk(staffRecord.role_id)
     const roleCode = roleRecord ? roleRecord.code : ''
 
-    // 第五步：更新最后登录时间
+    // 第六步：更新最后登录时间
     const now = new Date()
     await staffRecord.update({ last_login: now })
 
-    // 第六步：构建用户信息
+    // 第七步：登录成功，清零失败次数
+    clearLoginLimit(username)
+
+    // 第八步：构建用户信息
     const userInfo = {
       id: staffRecord.id,
       username: staffRecord.account,
@@ -397,7 +428,7 @@ const login = async (ctx, next) => {
       loginLocation: '南昌'
     }
 
-    // 第七步：签发 JWT token
+    // 第九步：签发 JWT token
     const token = generateToken({
       id: staffRecord.id,
       account: staffRecord.account,

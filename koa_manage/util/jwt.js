@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken'
 
-// JWT 密钥（生产环境应放到环境变量中）
-const SECRET_KEY = 'koa_manage_secret_2024'
+// JWT 密钥从环境变量读取，未配置时给出警告并使用开发兜底值
+const SECRET_KEY = process.env.JWT_SECRET || 'dev_fallback_secret'
+const EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
 
-// token 过期时间：7 天
-const EXPIRES_IN = '7d'
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  警告：未设置 JWT_SECRET 环境变量，使用默认密钥，仅限开发环境！')
+}
 
 // 生成 JWT token
 const generateToken = (payload) => {

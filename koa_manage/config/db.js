@@ -1,7 +1,18 @@
 import { Sequelize } from 'sequelize';
 import logger from '../util/log4js.js'// 引入日志模块
-const sequelize = new Sequelize('ShopingManage', 'root', '009096', {
-  host: 'localhost',
+
+// 数据库配置从环境变量读取，未配置时给出警告并使用开发兜底值
+const DB_HOST = process.env.DB_HOST || 'localhost'
+const DB_NAME = process.env.DB_NAME || 'ShopingManage'
+const DB_USER = process.env.DB_USER || 'root'
+const DB_PASSWORD = process.env.DB_PASSWORD || ''
+
+if (!process.env.DB_PASSWORD && process.env.NODE_ENV !== 'development') {
+  console.warn('⚠️  警告：未设置 DB_PASSWORD 环境变量，数据库密码为空！')
+}
+
+const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
   dialect: 'mysql',
   pool: {
     max: 5,//最大连接数

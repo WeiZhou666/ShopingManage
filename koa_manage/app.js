@@ -1,3 +1,5 @@
+// 必须在所有其他 import 之前加载 .env，否则后续模块读不到 process.env
+import 'dotenv/config'
 import Koa from 'koa'
 import views from 'koa-views'// 引入视图中间件
 import json from 'koa-json'// 引入 JSON 中间件
